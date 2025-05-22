@@ -32,8 +32,8 @@ jobs:
           file: ./app/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/app:latest
-            ghcr.io/${{ github.repository }}/app:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/sedaro-nano-app:latest
+            ghcr.io/${{ github.repository_owner }}/sedaro-nano-app:${{ github.sha }}
 
       - name: Build and push frontend (web) image
         uses: docker/build-push-action@v5
@@ -42,5 +42,5 @@ jobs:
           file: ./web/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/web:latest
-            ghcr.io/${{ github.repository }}/web:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/sedaro-nano-web:latest
+            ghcr.io/${{ github.repository_owner }}/sedaro-nano-web:${{ github.sha }}
