@@ -38,6 +38,7 @@ jobs:
           echo "Generated version: $VERSION"
 
       - name: Build and push backend (app) image
+        id: build_app
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -48,7 +49,13 @@ jobs:
             ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:${{ steps.version.outputs.version }}
             ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:${{ github.sha }}
 
+      - name: Show backend (app) image size
+        run: |
+          echo "Size of ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:latest"
+          docker images ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:latest
+
       - name: Build and push frontend (web) image
+        id: build_web
         uses: docker/build-push-action@v5
         with:
           context: ./web
@@ -58,3 +65,8 @@ jobs:
             ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:latest
             ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:${{ steps.version.outputs.version }}
             ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:${{ github.sha }}
+
+      - name: Show frontend (web) image size
+        run: |
+          echo "Size of ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:latest"
+          docker images ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:latest
