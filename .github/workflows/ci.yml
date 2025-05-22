@@ -29,6 +29,14 @@ jobs:
         id: lowercase
         run: echo "repository_owner=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
+      - name: Generate version number
+        id: version
+        run: |
+          # Get the current run number and use it as patch version
+          VERSION="0.0.${{ github.run_number }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+
       - name: Build and push backend (app) image
         uses: docker/build-push-action@v5
         with:
@@ -37,6 +45,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:latest
+            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:${{ steps.version.outputs.version }}
             ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:${{ github.sha }}
 
       - name: Build and push frontend (web) image
@@ -47,4 +56,5 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:latest
+            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:${{ steps.version.outputs.version }}
             ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:${{ github.sha }}
