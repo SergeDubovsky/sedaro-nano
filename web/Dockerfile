@@ -2,7 +2,7 @@
 FROM node:20-bookworm
 
 # Add `/web/node_modules/.bin` to $PATH
-ENV PATH /web/node_modules/.bin:$PATH
+ENV PATH=/web/node_modules/.bin:$PATH
 
 # Create and set working directory
 RUN mkdir /web
