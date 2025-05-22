@@ -25,6 +25,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert repository owner to lowercase
+        id: lowercase
+        run: echo "repository_owner=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Build and push backend (app) image
         uses: docker/build-push-action@v5
         with:
@@ -32,8 +36,8 @@ jobs:
           file: ./app/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/sedaro-nano-app:latest
-            ghcr.io/${{ github.repository_owner }}/sedaro-nano-app:${{ github.sha }}
+            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:latest
+            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:${{ github.sha }}
 
       - name: Build and push frontend (web) image
         uses: docker/build-push-action@v5
@@ -42,5 +46,5 @@ jobs:
           file: ./web/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/sedaro-nano-web:latest
-            ghcr.io/${{ github.repository_owner }}/sedaro-nano-web:${{ github.sha }}
+            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:latest
+            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:${{ github.sha }}
