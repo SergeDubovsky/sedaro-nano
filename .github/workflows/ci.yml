@@ -1,0 +1,45 @@
+name: CI - Build and Push Docker Images
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend (app) image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app
+          file: ./app/Dockerfile
+          push: true
+          tags: |
+            sergedubovsky/sedaro-nano-app:latest
+            sergedubovsky/sedaro-nano-app:${{ github.sha }}
+
+      - name: Build and push frontend (web) image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          push: true
+          tags: |
+            sergedubovsky/sedaro-nano-web:latest
+            sergedubovsky/sedaro-nano-web:${{ github.sha }}
