@@ -1,30 +1,50 @@
-FROM rust:1.84 AS builder
+# Build stage for Rust binary
+FROM rust:1.84-slim AS rust-builder
 
-# Set a working directory for the Rust build
-WORKDIR /usr/src/queries_builder
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the queries project files (contents of ./queries from host) into the current WORKDIR
+WORKDIR /usr/src/queries
 COPY ./queries .
 
-# Now Cargo.toml is at /usr/src/queries_builder/Cargo.toml
-RUN cargo clean
-RUN cargo build --release
+# Build optimized release binary
+RUN cargo build --release && \
+    strip target/release/sedaro-nano-queries
 
-# Running python
-FROM python:3.12
+# Final stage with minimal Python image
+FROM python:3.12-slim
 
-# Create and set working directory
-RUN mkdir /app
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash app
+
+# Set working directory
 WORKDIR /app
 
-COPY ./app/requirements.txt ./requirements.txt
-RUN pip3 install -r requirements.txt
+# Copy and install Python dependencies
+COPY ./app/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application code
 COPY ./app .
 
-RUN mkdir /queries
+# Create queries directory and copy stripped binary
+RUN mkdir -p /queries/target/release
+COPY --from=rust-builder /usr/src/queries/target/release/sedaro-nano-queries /queries/target/release/
 
-# Update the source path for the compiled Rust binary
-COPY --from=builder /usr/src/queries_builder/target/release/sedaro-nano-queries /queries/target/release/sedaro-nano-queries
+# Change ownership to app user
+RUN chown -R app:app /app /queries
 
-CMD [ "python3", "-m" , "flask", "run", "--debug", "--host=0.0.0.0", "--port=8000" ]
+# Switch to non-root user
+USER app
+
+# Expose port
+EXPOSE 8000
+
+CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=8000"]
