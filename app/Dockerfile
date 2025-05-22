@@ -2,7 +2,7 @@ FROM rust:1.84 AS builder
 
 RUN mkdir /queries
 WORKDIR /queries
-COPY queries .
+COPY ./queries ./queries
 
 RUN cargo clean
 RUN cargo build --release
@@ -14,10 +14,10 @@ FROM python:3.12
 RUN mkdir /app
 WORKDIR /app
 
-COPY app/requirements.txt requirements.txt
+COPY ./app/requirements.txt ./requirements.txt
 RUN pip3 install -r requirements.txt
 
-COPY app .
+COPY ./app .
 
 RUN mkdir /queries
 
