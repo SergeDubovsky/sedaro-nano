@@ -1,9 +1,12 @@
 FROM rust:1.84 AS builder
 
-RUN mkdir /queries
-WORKDIR /queries
-COPY ./queries ./queries
+# Set a working directory for the Rust build
+WORKDIR /usr/src/queries_builder
 
+# Copy the queries project files (contents of ./queries from host) into the current WORKDIR
+COPY ./queries .
+
+# Now Cargo.toml is at /usr/src/queries_builder/Cargo.toml
 RUN cargo clean
 RUN cargo build --release
 
@@ -21,6 +24,7 @@ COPY ./app .
 
 RUN mkdir /queries
 
-COPY --from=builder /queries/target/release/sedaro-nano-queries /queries/target/release/sedaro-nano-queries
+# Update the source path for the compiled Rust binary
+COPY --from=builder /usr/src/queries_builder/target/release/sedaro-nano-queries /queries/target/release/sedaro-nano-queries
 
 CMD [ "python3", "-m" , "flask", "run", "--debug", "--host=0.0.0.0", "--port=8000" ]
