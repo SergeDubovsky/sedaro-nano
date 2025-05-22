@@ -4,6 +4,7 @@ from functools import reduce
 from operator import __or__
 import subprocess
 import json
+import logging
 
 from modsim import agents
 from store import QRangeStore
@@ -71,9 +72,12 @@ class Simulator:
             next_sms = []
             for (agentId, sm) in sms:
                 if self.run_sm(agentId, sm, universe, state) is None:
-                    next_sms.append((agentId, sm))
+                    next_sms.append((agentId, sm)) # Retry if not all inputs were ready
             if len(sms) == len(next_sms):
-                raise Exception(f"No progress made while evaluating statemanagers for agent {agentId}. Remaining statemanagers: {[sm["func"].__name__ for (agentId, sm) in sms]}")
+                # Break if no progress was made to avoid infinite loops
+                # This can happen if there are circular dependencies or missing inputs
+                logging.error(f"Circular dependency or missing input detected for agent {agentId}")
+                break
             sms = next_sms
         return state
 

@@ -1,5 +1,9 @@
 version: '3.8'
 
+networks:
+  sedaro_network:
+    driver: bridge
+
 volumes: # Define the named volume
   sedaro_nano_db_data:
     external: true # Specify that this volume is managed externally (we created it with `docker volume create`)
@@ -10,6 +14,30 @@ services:
     build: ./web # Corrected to specify context, Dockerfile is implicit
     ports:
       - '3030:80' # Reverted host port to 3030, Nginx serves on 80 in container
+    restart: unless-stopped
+    depends_on:
+      - app
+    networks:
+      - sedaro_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   app:
     container_name: app
     build:
@@ -20,3 +48,28 @@ services:
     volumes:
       - ./app/:/app/
       - sedaro_nano_db_data:/app/instance # Mount the named volume
+    restart: unless-stopped
+    networks:
+      - sedaro_network
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
