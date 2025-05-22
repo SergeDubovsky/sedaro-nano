@@ -1,12 +1,15 @@
+version: '3.8'
+
+volumes: # Define the named volume
+  sedaro_nano_db_data:
+    external: true # Specify that this volume is managed externally (we created it with `docker volume create`)
+
 services:
   web:
     container_name: web
-    build: web
+    build: ./web # Corrected to specify context, Dockerfile is implicit
     ports:
-      - '3030:3030'
-    volumes:
-      - ./web/:/web/
-      - /web/node_modules/
+      - '3031:80' # Changed host port to 3031, Nginx still serves on 80 in container
   app:
     container_name: app
     build:
@@ -16,4 +19,4 @@ services:
       - '8000:8000'
     volumes:
       - ./app/:/app/
-      - /app/instance/
+      - sedaro_nano_db_data:/app/instance # Mount the named volume
