@@ -42,8 +42,12 @@ with app.app_context():
 
 
 @app.get("/")
-def health():
+def root(): # Renamed from health to root
     return "<p>Sedaro Nano API - running!</p>"
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
 
 
 @app.get("/simulation")
