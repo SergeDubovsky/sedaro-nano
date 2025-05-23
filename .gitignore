@@ -13,3 +13,4 @@ terraform-bootstrap/terraform.tfstate.backup
 terraform-github-secrets/terraform.tfvars
 terraform-github-secrets/.terraform
 terraform-github-secrets/.terraform.lock.hcl
+terraform-github-secrets/terraform.tfstate
