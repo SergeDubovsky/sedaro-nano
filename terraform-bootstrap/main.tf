@@ -111,10 +111,11 @@ resource "aws_iam_policy" "terraform_state_access" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow",
+        Effect = "Allow",        
         Action = [
           "s3:GetObject",
           "s3:PutObject",
+          "s3:DeleteObject",
           "s3:ListBucket"
         ],
         Resource = [
