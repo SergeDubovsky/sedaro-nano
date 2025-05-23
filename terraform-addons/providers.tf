@@ -56,7 +56,15 @@ provider "kubernetes" {
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
-    args        = ["eks", "get-token", "--cluster-name", data.terraform_remote_state.infrastructure.outputs.cluster_name, "--region", var.aws_region]
+    args = [
+      "eks", "get-token",
+      "--cluster-name", data.terraform_remote_state.infrastructure.outputs.cluster_name,
+      "--region", var.aws_region,
+      "--output", "json"
+    ]
+    env = {
+      AWS_REGION = var.aws_region
+    }
   }
 }
 
@@ -68,7 +76,15 @@ provider "helm" {
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", data.terraform_remote_state.infrastructure.outputs.cluster_name, "--region", var.aws_region]
+      args = [
+        "eks", "get-token",
+        "--cluster-name", data.terraform_remote_state.infrastructure.outputs.cluster_name,
+        "--region", var.aws_region,
+        "--output", "json"
+      ]
+      env = {
+        AWS_REGION = var.aws_region
+      }
     }
   }
 }

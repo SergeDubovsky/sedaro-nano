@@ -87,7 +87,6 @@ jobs:
       - name: Terraform Apply - Infrastructure
         working-directory: ./terraform
         run: terraform apply -auto-approve tfplan
-
   deploy-addons:
     name: Deploy Add-ons (Stage 2)
     runs-on: ubuntu-latest
@@ -109,16 +108,39 @@ jobs:
         with:
           terraform_version: 1.12.1
 
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      - name: Configure kubectl for EKS
+        run: |
+          aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }}
+          # Verify kubectl can connect to the cluster
+          kubectl get nodes
+          # Test aws eks get-token command
+          aws eks get-token --cluster-name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }} --output json
+
       - name: Terraform Init - Add-ons
         working-directory: ./terraform-addons
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+          KUBE_CONFIG_PATH: ~/.kube/config
         run: terraform init
 
       - name: Terraform Plan - Add-ons
         working-directory: ./terraform-addons
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+          KUBE_CONFIG_PATH: ~/.kube/config
         run: terraform plan -input=false -out=tfplan
 
       - name: Terraform Apply - Add-ons
         working-directory: ./terraform-addons
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+          KUBE_CONFIG_PATH: ~/.kube/config
         run: terraform apply -auto-approve tfplan
 
   deploy-workloads:
@@ -136,6 +158,12 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
 
       - name: Configure kubectl
         run: |
