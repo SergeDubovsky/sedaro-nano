@@ -5,12 +5,14 @@ This project now uses a **two-stage deployment approach** to solve the Kubernete
 ## Architecture Overview
 
 ### Stage 1: Infrastructure (`terraform/`)
+
 - **Purpose**: Deploy core AWS infrastructure
 - **Includes**: VPC, EKS cluster, IAM roles
 - **State**: `terraform.tfstate`
 - **Providers**: AWS only
 
 ### Stage 2: Add-ons (`terraform-addons/`)
+
 - **Purpose**: Deploy Kubernetes add-ons and controllers
 - **Includes**: AWS Load Balancer Controller, other Helm charts
 - **State**: `terraform-addons.tfstate`
@@ -20,6 +22,7 @@ This project now uses a **two-stage deployment approach** to solve the Kubernete
 ## Why Two Stages?
 
 The two-stage approach solves the **chicken-and-egg problem** where:
+
 1. Helm/Kubernetes providers need to authenticate to EKS cluster
 2. But the EKS cluster is being created in the same Terraform run
 3. Provider initialization happens before resource creation
@@ -28,6 +31,7 @@ The two-stage approach solves the **chicken-and-egg problem** where:
 ## Deployment Order
 
 ### Manual Deployment
+
 ```bash
 # Stage 1: Deploy infrastructure
 cd terraform/
@@ -46,11 +50,12 @@ kubectl apply -f k8s/
 ```
 
 ### GitHub Actions Deployment
+
 The workflow `terraform-infra-two-stage.yml` handles this automatically:
 
 1. **Validate** - Validates both Stage 1 and Stage 2 configurations
 2. **Deploy Infrastructure** - Deploys Stage 1 (EKS cluster)
-3. **Deploy Add-ons** - Deploys Stage 2 (Helm charts) 
+3. **Deploy Add-ons** - Deploys Stage 2 (Helm charts)
 4. **Deploy Workloads** - Deploys application manifests
 
 ## State Management
@@ -59,6 +64,7 @@ The workflow `terraform-infra-two-stage.yml` handles this automatically:
 - **Stage 2 State**: `s3://sedaro-nano-terraform-state/demo/terraform-addons.tfstate`
 
 Stage 2 reads Stage 1 outputs using:
+
 ```hcl
 data "terraform_remote_state" "infrastructure" {
   backend = "s3"
@@ -81,6 +87,7 @@ data "terraform_remote_state" "infrastructure" {
 ## Migration from Single-Stage
 
 If you have existing infrastructure, you'll need to:
+
 1. Remove Helm resources from existing state
 2. Import them into the new add-ons configuration
 3. Update workflows to use two-stage approach
@@ -88,6 +95,6 @@ If you have existing infrastructure, you'll need to:
 ## Next Steps
 
 1. Test the two-stage deployment locally
-2. Update GitHub Actions workflows 
+2. Update GitHub Actions workflows
 3. Test the full CI/CD pipeline
 4. Add additional Helm charts to Stage 2 as needed

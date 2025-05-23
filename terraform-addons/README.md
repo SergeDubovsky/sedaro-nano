@@ -16,16 +16,19 @@ This directory contains Terraform configuration for deploying Kubernetes add-ons
 ## Usage
 
 ### 1. Initialize Terraform
+
 ```bash
 terraform init
 ```
 
 ### 2. Plan the deployment
+
 ```bash
 terraform plan
 ```
 
 ### 3. Apply the configuration
+
 ```bash
 terraform apply
 ```
@@ -37,8 +40,9 @@ This configuration uses a separate S3 state file (`terraform-addons.tfstate`) an
 ## Dependencies
 
 This configuration depends on outputs from the infrastructure stage:
+
 - `cluster_name`
-- `cluster_endpoint` 
+- `cluster_endpoint`
 - `cluster_certificate_authority_data`
 - `aws_load_balancer_controller_role_arn`
 
