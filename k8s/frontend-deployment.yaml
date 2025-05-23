@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sedaro-nano-frontend
+  labels:
+    app: sedaro-nano
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sedaro-nano
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: sedaro-nano
+        tier: frontend
+    spec:
+      containers:
+      - name: sedaro-nano-web
+        image: ghcr.io/sergedubovsky/sedaro-nano-web:latest
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
