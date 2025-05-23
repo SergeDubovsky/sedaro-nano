@@ -10,7 +10,7 @@ on:
       - 'terraform-github-secrets/**'
       - 'k8s/**'
       - '**/*.md'
-      - '.github/workflows/terraform-infra.yml'
+      - '.github/workflows/terraform-infra-two-stage.yml'
 
 jobs:
   build_and_push:
