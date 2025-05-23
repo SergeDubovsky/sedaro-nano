@@ -52,7 +52,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      - name: Dump the role ARN
+        run: echo "ARN → ${{ vars.AWS_ROLE_ARN }}"
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
