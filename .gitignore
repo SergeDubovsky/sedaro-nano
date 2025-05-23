@@ -16,3 +16,4 @@ terraform-github-secrets/.terraform.lock.hcl
 terraform-github-secrets/terraform.tfstate
 .temp/terraform.tfstate
 terraform-addons/.terraform
+terraform-addons/.terraform.lock.hcl
