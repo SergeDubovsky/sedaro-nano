@@ -7,14 +7,14 @@ on:
       - 'terraform/**'
       - 'terraform-addons/**'
       - 'k8s/**'
-      - '.github/workflows/terraform-infra.yml'
+      - '.github/workflows/terraform-infra-two-stage.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'terraform/**'
       - 'terraform-addons/**'
       - 'k8s/**'
-      - '.github/workflows/terraform-infra.yml'
+      - '.github/workflows/terraform-infra-two-stage.yml'
   workflow_dispatch:  # Allow manual triggering
 
 permissions:
