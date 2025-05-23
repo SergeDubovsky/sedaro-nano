@@ -15,7 +15,7 @@ locals {
 resource "aws_iam_openid_connect_provider" "github" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+  thumbprint_list = ["D1EB23A46D17D68FD92564C2F1F1601764D8E349"]
   
   tags = {
     Name = "GitHub-OIDC-Provider"
