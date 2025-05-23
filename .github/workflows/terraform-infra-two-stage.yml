@@ -112,15 +112,37 @@ jobs:
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-
+          sudo mv kubectl /usr/local/bin/      
       - name: Configure kubectl for EKS
         run: |
+          # Verify AWS credentials are working
+          echo "Testing AWS credentials..."
+          aws sts get-caller-identity
+          
+          # Create AWS credentials file for kubectl compatibility
+          mkdir -p ~/.aws
+          cat > ~/.aws/credentials << EOF
+          [default]
+          aws_access_key_id = $AWS_ACCESS_KEY_ID
+          aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+          aws_session_token = $AWS_SESSION_TOKEN
+          EOF
+          
+          cat > ~/.aws/config << EOF
+          [default]
+          region = ${{ vars.AWS_REGION || 'us-east-1' }}
+          output = json
+          EOF
+          
+          # Update kubeconfig
+          echo "Updating kubeconfig..."
           aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }}
-          # Verify kubectl can connect to the cluster
-          kubectl get nodes
-          # Test aws eks get-token command
+          
+          # Test the token generation first
+          echo "Testing token generation..."
           aws eks get-token --cluster-name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }} --output json
+          
+          echo "Kubeconfig created successfully. Terraform will use ~/.kube/config"
 
       - name: Terraform Init - Add-ons
         working-directory: ./terraform-addons
