@@ -7,3 +7,5 @@
 **/instance
 **/database.db
 terraform-bootstrap/.terraform
+terraform-bootstrap/terraform.tfstate
+terraform-bootstrap/.terraform.tfstate.lock.info
