@@ -6,3 +6,4 @@
 **/.vscode
 **/instance
 **/database.db
+terraform-bootstrap/.terraform
