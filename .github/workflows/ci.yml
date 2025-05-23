@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths-ignore:
       - 'terraform/**'
+      - 'terraform-addons/**'
       - 'terraform-bootstrap/**'
       - 'terraform-github-secrets/**'
       - 'k8s/**'
