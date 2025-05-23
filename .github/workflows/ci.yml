@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - 'terraform/**'
       - 'terraform-bootstrap/**'
+      - 'terraform-github-secrets/**'
       - 'k8s/**'
       - '**/*.md'
       - '.github/workflows/terraform-infra.yml'
