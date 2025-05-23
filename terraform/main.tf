@@ -63,6 +63,22 @@ module "eks" {
   subnet_ids                     = module.vpc.private_subnets
   cluster_endpoint_public_access = true
 
+  # Allow the GitHub Actions role to access the cluster
+  access_entries = {
+    github_actions_role = {
+      kubernetes_groups = [] # No specific Kubernetes groups needed for admin access
+      principal_arn     = var.github_actions_role_arn
+      policy_associations = {
+        admin_policy = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
+
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     instance_types = var.node_instance_types

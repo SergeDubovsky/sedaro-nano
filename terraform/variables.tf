@@ -51,3 +51,8 @@ variable "node_min_size" {
   type        = number
   default     = 1
 }
+
+variable "github_actions_role_arn" {
+  description = "The ARN of the IAM role assumed by GitHub Actions for EKS access."
+  type        = string
+}
