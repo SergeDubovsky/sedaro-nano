@@ -3,6 +3,12 @@ name: CI - Build and Push Docker Images
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'terraform/**'
+      - 'terraform-bootstrap/**'
+      - 'k8s/**'
+      - '**/*.md'
+      - '.github/workflows/terraform-infra.yml'
 
 jobs:
   build_and_push:
