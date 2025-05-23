@@ -53,22 +53,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug OIDC token
-        shell: bash
-        run: |
-            # build the URL correctly (use “?” if there isn’t already a query string)
-            TOKEN_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}?audience=sts.amazonaws.com"
-            echo "Requesting token from $TOKEN_URL"
-            # include the Bearer prefix and real env var
-            ID_TOKEN=$(curl -sH "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$TOKEN_URL")
-            echo "Raw token: $ID_TOKEN"
-            echo "Decoded claims:"
-            echo "$ID_TOKEN" \
-            | cut -d. -f2 \
-            | base64 -d \
-            | jq '{aud,sub}'
-      - name: Dump the role ARN
-        run: echo "ARN → ${{ vars.AWS_ROLE_ARN }}"
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
