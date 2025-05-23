@@ -14,14 +14,13 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.10"
     }
-  }
-  # Remote state storage in S3
+  }  # Remote state storage in S3
   backend "s3" {
-    bucket         = "sedaro-nano-terraform-state"
-    key            = "demo/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "sedaro-nano-terraform-state-lock"
-    encrypt        = true
+    bucket      = "sedaro-nano-terraform-state"
+    key         = "demo/terraform.tfstate"
+    region      = "us-east-1"
+    use_lockfile = true
+    encrypt     = true
   }
 }
 
