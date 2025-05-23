@@ -9,7 +9,7 @@ data "aws_caller_identity" "current" {}
 
 locals {
   name = "${var.project_name}-${var.environment}"
-  
+
   tags = {
     Project     = var.project_name
     Environment = var.environment
@@ -32,8 +32,8 @@ module "vpc" {
   public_subnets  = [for k, v in slice(data.aws_availability_zones.available.names, 0, 2) : cidrsubnet(var.vpc_cidr, 8, k)]
   private_subnets = [for k, v in slice(data.aws_availability_zones.available.names, 0, 2) : cidrsubnet(var.vpc_cidr, 8, k + 10)]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true  # Cost optimization: single NAT gateway
+  enable_nat_gateway   = true
+  single_nat_gateway   = true # Cost optimization: single NAT gateway
   enable_dns_hostnames = true
   enable_dns_support   = true
 
@@ -66,7 +66,7 @@ module "eks" {
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     instance_types = var.node_instance_types
-    
+
     # We are using the IRSA created below for permissions
     # However, we have to deploy with the policy attached FIRST (when creating a fresh cluster)
     # and then turn this off after the cluster/node group is created. Without this initial policy,
@@ -78,10 +78,10 @@ module "eks" {
   eks_managed_node_groups = {
     main = {
       name = "${local.name}-main"
-      
+
       instance_types = var.node_instance_types
-      capacity_type  = "SPOT"  # Cost optimization: use SPOT instances
-      
+      capacity_type  = "SPOT" # Cost optimization: use SPOT instances
+
       min_size     = var.node_min_size
       max_size     = var.node_max_size
       desired_size = var.node_desired_size

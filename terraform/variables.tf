@@ -31,13 +31,13 @@ variable "availability_zones" {
 variable "node_instance_types" {
   description = "EC2 instance types for EKS nodes"
   type        = list(string)
-  default     = ["t3.small"]  # Cost-optimized for demo
+  default     = ["t3.small"] # Cost-optimized for demo
 }
 
 variable "node_desired_size" {
   description = "Desired number of nodes"
   type        = number
-  default     = 1  # Minimal for demo
+  default     = 1 # Minimal for demo
 }
 
 variable "node_max_size" {
