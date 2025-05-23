@@ -2,6 +2,8 @@
 
 This directory contains the Terraform Infrastructure as Code (IaC) for deploying the Sedaro Nano application to AWS EKS.
 
+**Note:** The infrastructure is primarily deployed and managed via GitHub Actions workflows. See the `.github/workflows` directory for details.
+
 ## Architecture
 
 - **VPC**: Custom VPC with public and private subnets across 2 AZs
@@ -18,32 +20,43 @@ This directory contains the Terraform Infrastructure as Code (IaC) for deploying
 
 ## Prerequisites
 
-1. **AWS CLI** configured with appropriate credentials
-2. **Terraform** >= 1.0 installed
-3. **kubectl** installed for cluster management
+1. **AWS CLI** configured with appropriate credentials (for local interaction if needed, and for the GitHub Actions runner if self-hosted and not using OIDC).
+2. **Terraform** >= 1.0 installed (for local validation and planning).
+3. **kubectl** installed for cluster management.
 
-## Deployment Steps
+## Deployment Process
 
-### 1. Initialize Terraform
+The EKS infrastructure is automatically deployed and updated by the `terraform-infra.yml` GitHub Actions workflow when changes are pushed or merged to the `main` branch.
 
-```bash
-cd terraform
-terraform init
-```
+### Local Validation (Optional)
 
-### 2. Review the Plan
+Before pushing changes, you can validate your Terraform configuration locally:
 
-```bash
-terraform plan
-```
+1. **Initialize Terraform** (only needed once, or after adding/changing modules):
 
-### 3. Apply the Infrastructure
+   ```bash
+   cd terraform
+   terraform init
+   ```
 
-```bash
-terraform apply
-```
+2. **Review the Plan**:
 
-This will create:
+   ```bash
+   terraform plan
+   ```
+
+   This will show you what changes would be applied by the workflow.
+
+### Automated Deployment
+
+The GitHub Actions workflow will automatically:
+
+- Initialize Terraform.
+- Create a plan.
+- Apply the changes to the AWS environment.
+
+This process creates:
+
 - VPC and networking components
 - EKS cluster
 - Node group with SPOT instances
@@ -51,7 +64,7 @@ This will create:
 
 ### 4. Configure kubectl
 
-After successful deployment, configure kubectl to connect to your cluster:
+After the GitHub Actions workflow has successfully deployed or updated the infrastructure, configure kubectl to connect to your cluster:
 
 ```bash
 aws eks update-kubeconfig --region us-east-1 --name sedaro-nano-demo
@@ -81,13 +94,9 @@ kubectl apply -f k8s/
 
 ## Cleanup
 
-To destroy the infrastructure and avoid ongoing costs:
+To destroy the infrastructure and avoid ongoing costs, trigger the `destroy-infra.yml` GitHub Actions workflow. This workflow can typically be run manually from the Actions tab in your GitHub repository.
 
-```bash
-terraform destroy
-```
-
-**Important**: Always run `terraform destroy` when you're done with the demo to avoid unnecessary AWS charges.
+**Important**: Ensure the destroy workflow is run when you're done with the demo to avoid unnecessary AWS charges.
 
 ## Configuration
 
