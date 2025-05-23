@@ -54,7 +54,7 @@ module "vpc" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.15"
+  version = "~> 20.0"
 
   cluster_name    = local.name
   cluster_version = "1.27"
@@ -103,9 +103,6 @@ module "eks" {
     }
   }
 
-  # aws-auth configmap
-  manage_aws_auth_configmap = true
-
   tags = local.tags
 }
 
@@ -115,7 +112,7 @@ module "eks" {
 
 module "aws_load_balancer_controller_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.20"
+  version = "~> 5.0"
 
   role_name = "${local.name}-aws-load-balancer-controller"
 

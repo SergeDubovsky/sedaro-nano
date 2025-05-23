@@ -165,6 +165,7 @@ resource "aws_iam_policy" "eks_management" {
           "kms:TagResource", # Explicitly add TagResource
           "kms:ListKeys",
           "kms:ListAliases",
+          "kms:CreateAlias", # Added for EKS KMS alias creation
           "kms:EnableKeyRotation",
           "kms:ScheduleKeyDeletion",
           "kms:CancelKeyDeletion",
@@ -175,6 +176,7 @@ resource "aws_iam_policy" "eks_management" {
           "logs:DescribeLogStreams",
           "logs:PutLogEvents",
           "logs:PutRetentionPolicy",
+          "logs:ListTagsForResource", # Added for EKS log group tagging
           "logs:TagResource" # Add TagResource for logs if needed by module
         ],
         Resource = "*" # Keep as "*" for broad EKS management, or scope down if required
