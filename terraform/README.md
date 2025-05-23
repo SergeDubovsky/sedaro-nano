@@ -54,7 +54,7 @@ This will create:
 After successful deployment, configure kubectl to connect to your cluster:
 
 ```bash
-aws eks update-kubeconfig --region us-west-2 --name sedaro-nano-demo
+aws eks update-kubeconfig --region us-east-1 --name sedaro-nano-demo
 ```
 
 ### 5. Verify Cluster Access
