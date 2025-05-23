@@ -26,7 +26,8 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4      
+        uses: actions/checkout@v4
+        
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -60,6 +61,8 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.12.1
 
       - name: Terraform Init
         working-directory: ./terraform
