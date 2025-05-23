@@ -86,7 +86,7 @@ jobs:
 
       - name: Terraform Apply - Infrastructure
         working-directory: ./terraform
-        run: terraform apply -auto-approve tfplan -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
+        run: terraform apply -auto-approve -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}" tfplan
   deploy-addons:
     name: Deploy Add-ons (Stage 2)
     runs-on: ubuntu-latest
