@@ -52,6 +52,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Debug OIDC token
+        run: |
+          ID_TOKEN=$(curl -sH "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com")
+          echo "$ID_TOKEN" | jq '{aud,sub}'
+
       - name: Dump the role ARN
         run: echo "ARN → ${{ vars.AWS_ROLE_ARN }}"
       - name: Configure AWS Credentials
