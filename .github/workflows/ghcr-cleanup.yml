@@ -1,0 +1,28 @@
+name: GHCR Cleanup
+
+on:
+  workflow_dispatch: # Run manually
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup old GHCR images (keep 3)
+        env:
+          GHCR_REPO: sedaro-nano-web
+          GHCR_OWNER: sergedubovsky
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          versions=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/user/packages/container/$GHCR_REPO/versions \
+            | jq 'sort_by(.created_at) | reverse | .[] | {id: .id, name: .metadata.container.tags[0]}' )
+
+          echo "$versions" | jq -s '.[3:]' | jq -c '.[]' | while read -r version; do
+            id=$(echo "$version" | jq -r '.id')
+            name=$(echo "$version" | jq -r '.name')
+            echo "Deleting image: $name (id: $id)"
+            curl -X DELETE \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/user/packages/container/$GHCR_REPO/versions/$id
+          done
