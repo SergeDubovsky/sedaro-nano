@@ -107,7 +107,8 @@ module "eks" {
 }
 
 ################################################################################
-# AWS Load Balancer Controller
+# AWS Load Balancer Controller IRSA Role
+# Note: The actual Helm deployment is in terraform-addons/
 ################################################################################
 
 module "aws_load_balancer_controller_irsa_role" {
@@ -126,53 +127,4 @@ module "aws_load_balancer_controller_irsa_role" {
   }
 
   tags = local.tags
-}
-
-resource "helm_release" "aws_load_balancer_controller" {
-  name       = "aws-load-balancer-controller"
-  repository = "https://aws.github.io/eks-charts"
-  chart      = "aws-load-balancer-controller"
-  namespace  = "kube-system"
-  version    = "1.13.2"
-
-  set {
-    name  = "clusterName"
-    value = module.eks.cluster_name
-  }
-
-  set {
-    name  = "serviceAccount.create"
-    value = "true"
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = "aws-load-balancer-controller"
-  }
-
-  set {
-    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = module.aws_load_balancer_controller_irsa_role.iam_role_arn
-  }
-  depends_on = [
-    module.eks.cluster_id,
-    module.eks.cluster_endpoint,
-    module.eks.cluster_certificate_authority_data,
-    module.aws_load_balancer_controller_irsa_role,
-    null_resource.configure_kubectl
-  ]
-}
-
-# Configure kubectl after EKS cluster is ready
-resource "null_resource" "configure_kubectl" {
-  depends_on = [module.eks.cluster_id]
-
-  provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.aws_region}"
-  }
-
-  triggers = {
-    cluster_name = module.eks.cluster_name
-    endpoint     = module.eks.cluster_endpoint
-  }
 }
