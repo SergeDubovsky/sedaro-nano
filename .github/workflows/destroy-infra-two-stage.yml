@@ -112,4 +112,4 @@ jobs:
 
       - name: Terraform Destroy - Infrastructure
         working-directory: ./terraform
-        run: terraform destroy -auto-approve
+        run: terraform destroy -auto-approve -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
