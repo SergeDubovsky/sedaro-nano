@@ -155,5 +155,10 @@ resource "helm_release" "aws_load_balancer_controller" {
     value = module.aws_load_balancer_controller_irsa_role.iam_role_arn
   }
 
-  depends_on = [module.eks]
+  depends_on = [
+    module.eks.cluster_id,
+    module.eks.cluster_endpoint,
+    module.eks.cluster_certificate_authority_data,
+    module.aws_load_balancer_controller_irsa_role
+  ]
 }

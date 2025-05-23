@@ -15,12 +15,13 @@ terraform {
       version = "~> 2.10"
     }
   }
-
   # Remote state storage in S3
   backend "s3" {
-    bucket = "sedaro-nano-terraform-state"
-    key    = "demo/terraform.tfstate"
-    region = "us-east-1"
+    bucket         = "sedaro-nano-terraform-state"
+    key            = "demo/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "sedaro-nano-terraform-state-lock"
+    encrypt        = true
   }
 }
 
@@ -45,7 +46,7 @@ provider "kubernetes" {
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", var.aws_region]
   }
 }
 
@@ -57,7 +58,7 @@ provider "helm" {
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", var.aws_region]
     }
   }
 }
