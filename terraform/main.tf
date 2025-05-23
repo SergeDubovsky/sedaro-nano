@@ -154,11 +154,25 @@ resource "helm_release" "aws_load_balancer_controller" {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = module.aws_load_balancer_controller_irsa_role.iam_role_arn
   }
-
   depends_on = [
     module.eks.cluster_id,
     module.eks.cluster_endpoint,
     module.eks.cluster_certificate_authority_data,
-    module.aws_load_balancer_controller_irsa_role
+    module.aws_load_balancer_controller_irsa_role,
+    null_resource.configure_kubectl
   ]
+}
+
+# Configure kubectl after EKS cluster is ready
+resource "null_resource" "configure_kubectl" {
+  depends_on = [module.eks.cluster_id]
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.aws_region}"
+  }
+
+  triggers = {
+    cluster_name = module.eks.cluster_name
+    endpoint     = module.eks.cluster_endpoint
+  }
 }
