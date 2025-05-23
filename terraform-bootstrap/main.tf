@@ -15,7 +15,7 @@ locals {
 resource "aws_iam_openid_connect_provider" "github" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["D1EB23A46D17D68FD92564C2F1F1601764D8E349"]
+  thumbprint_list = ["d1eb23a46d17d68fd92564c2f1f1601764d8e349", "6938fd4d98bab03faadb97b34396831e3780aea1"]
   
   tags = {
     Name = "GitHub-OIDC-Provider"
@@ -150,9 +150,34 @@ resource "aws_iam_policy" "eks_management" {
           "ec2:*",
           "iam:*", 
           "elasticloadbalancing:*",
-          "autoscaling:*"
+          "autoscaling:*",
+          # KMS permissions for EKS
+          "kms:CreateGrant",
+          "kms:CreateKey",
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:Encrypt",
+          "kms:GenerateDataKey",
+          "kms:ListGrants",
+          "kms:ReEncryptFrom",
+          "kms:ReEncryptTo",
+          "kms:RevokeGrant",
+          "kms:TagResource", # Explicitly add TagResource
+          "kms:ListKeys",
+          "kms:ListAliases",
+          "kms:EnableKeyRotation",
+          "kms:ScheduleKeyDeletion",
+          "kms:CancelKeyDeletion",
+          # CloudWatch Logs permissions for EKS
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
+          "logs:PutLogEvents",
+          "logs:PutRetentionPolicy",
+          "logs:TagResource" # Add TagResource for logs if needed by module
         ],
-        Resource = "*"
+        Resource = "*" # Keep as "*" for broad EKS management, or scope down if required
       }
     ]
   })
