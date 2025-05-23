@@ -169,6 +169,7 @@ resource "aws_iam_policy" "eks_management" {
           "kms:EnableKeyRotation",
           "kms:ScheduleKeyDeletion",
           "kms:CancelKeyDeletion",
+          "kms:DeleteAlias", # Added for EKS KMS alias deletion
           # CloudWatch Logs permissions for EKS
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
@@ -177,7 +178,8 @@ resource "aws_iam_policy" "eks_management" {
           "logs:PutLogEvents",
           "logs:PutRetentionPolicy",
           "logs:ListTagsForResource", # Added for EKS log group tagging
-          "logs:TagResource" # Add TagResource for logs if needed by module
+          "logs:TagResource", # Add TagResource for logs if needed by module
+          "logs:DeleteLogGroup" // Added for EKS log group deletion
         ],
         Resource = "*" # Keep as "*" for broad EKS management, or scope down if required
       }
