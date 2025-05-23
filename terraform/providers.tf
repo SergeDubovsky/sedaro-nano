@@ -9,7 +9,7 @@ terraform {
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 2.20"
-    }    
+    }
     helm = {
       source  = "hashicorp/helm"
       version = "~> 2.10"
@@ -18,11 +18,11 @@ terraform {
 
   # Remote state storage in S3
   backend "s3" {
-    bucket      = "sedaro-nano-terraform-state"
-    key         = "demo/terraform.tfstate"
-    region      = "us-east-1"
+    bucket       = "sedaro-nano-terraform-state"
+    key          = "demo/terraform.tfstate"
+    region       = "us-east-1"
     use_lockfile = true
-    encrypt     = true
+    encrypt      = true
   }
 }
 
