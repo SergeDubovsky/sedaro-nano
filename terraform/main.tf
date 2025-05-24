@@ -64,20 +64,36 @@ module "eks" {
   cluster_endpoint_public_access = true
 
   # Allow the GitHub Actions role to access the cluster
-  access_entries = {
-    github_actions_role = {
-      kubernetes_groups = [] # No specific Kubernetes groups needed for admin access
-      principal_arn     = var.github_actions_role_arn
-      policy_associations = {
-        admin_policy = {
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          access_scope = {
-            type = "cluster"
+  access_entries = merge(
+    {
+      github_actions_role = {
+        kubernetes_groups = [] # No specific Kubernetes groups needed for admin access
+        principal_arn     = var.github_actions_role_arn
+        policy_associations = {
+          admin_policy = {
+            policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+            access_scope = {
+              type = "cluster"
+            }
           }
         }
       }
-    }
-  }
+    },
+    var.admin_user_arn != "" ? {
+      admin_user = {
+        kubernetes_groups = [] # Granting admin via policy association
+        principal_arn     = var.admin_user_arn
+        policy_associations = {
+          admin_policy = {
+            policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+            access_scope = {
+              type = "cluster"
+            }
+          }
+        }
+      }
+    } : {}
+  )
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {

@@ -53,6 +53,12 @@ variable "node_min_size" {
 }
 
 variable "github_actions_role_arn" {
-  description = "The ARN of the IAM role assumed by GitHub Actions for EKS access."
+  description = "The ARN of the IAM role assumed by GitHub Actions for EKS access. This should be supplied via a GitHub repository secret (e.g., GITHUB_ACTIONS_ROLE_ARN) and passed as the TF_VAR_github_actions_role_arn environment variable."
   type        = string
+}
+
+variable "admin_user_arn" {
+  description = "The ARN of an IAM user or role to grant EKS cluster admin access. This should be supplied via a GitHub repository secret (e.g., ADMIN_USER_ARN) and passed as the TF_VAR_admin_user_arn environment variable. If empty or not provided, no admin user access entry will be created."
+  type        = string
+  default     = ""
 }
