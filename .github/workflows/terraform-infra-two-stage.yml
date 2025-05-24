@@ -86,7 +86,8 @@ jobs:
 
       - name: Terraform Apply - Infrastructure
         working-directory: ./terraform
-        run: terraform apply -auto-approve -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}" tfplan
+        run: terraform apply -auto-approve tfplan
+
   deploy-addons:
     name: Deploy Add-ons (Stage 2)
     runs-on: ubuntu-latest
@@ -108,61 +109,16 @@ jobs:
         with:
           terraform_version: 1.12.1
 
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/      
-      - name: Configure kubectl for EKS
-        run: |
-          # Verify AWS credentials are working
-          echo "Testing AWS credentials..."
-          aws sts get-caller-identity
-          
-          # Create AWS credentials file for kubectl compatibility
-          mkdir -p ~/.aws
-          cat > ~/.aws/credentials << EOF
-          [default]
-          aws_access_key_id = $AWS_ACCESS_KEY_ID
-          aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
-          aws_session_token = $AWS_SESSION_TOKEN
-          EOF
-          
-          cat > ~/.aws/config << EOF
-          [default]
-          region = ${{ vars.AWS_REGION || 'us-east-1' }}
-          output = json
-          EOF
-          
-          # Update kubeconfig
-          echo "Updating kubeconfig..."
-          aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }}
-          
-          # Test the token generation first
-          echo "Testing token generation..."
-          aws eks get-token --cluster-name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }} --output json
-          
-          echo "Kubeconfig created successfully. Terraform will use ~/.kube/config"
-
       - name: Terraform Init - Add-ons
         working-directory: ./terraform-addons
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-          KUBE_CONFIG_PATH: ~/.kube/config
         run: terraform init
 
       - name: Terraform Plan - Add-ons
         working-directory: ./terraform-addons
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-          KUBE_CONFIG_PATH: ~/.kube/config
         run: terraform plan -input=false -out=tfplan
 
       - name: Terraform Apply - Add-ons
         working-directory: ./terraform-addons
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-          KUBE_CONFIG_PATH: ~/.kube/config
         run: terraform apply -auto-approve tfplan
 
   deploy-workloads:
