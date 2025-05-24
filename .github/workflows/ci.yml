@@ -11,8 +11,8 @@ on:
       - 'k8s/**'
       - '**/*.md'
       - '.github/workflows/terraform-infra-two-stage.yml'
+      - '.github/workflows/destroy-infra-two-stage.yml'
       - '.github/workflows/deploy-k8s.yml'
-      - '.github/workflows/terraform-infra-cleanup.yml'
 
 jobs:
   build_and_push:
