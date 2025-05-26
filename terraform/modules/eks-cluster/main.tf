@@ -110,8 +110,8 @@ module "eks" {
   }
   eks_managed_node_groups = {
     main = {
-      name           = "${local.name}-main"
-      use_name_prefix = false  # Use exact name without timestamp suffix
+      name            = "${local.name}-main"
+      use_name_prefix = false # Use exact name without timestamp suffix
 
       instance_types = var.node_instance_types
       capacity_type  = "SPOT" # Cost optimization: use SPOT instances
