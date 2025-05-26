@@ -108,12 +108,11 @@ module "eks" {
     iam_role_attach_cni_policy = true
   }
   eks_managed_node_groups = {
-    main = {
-      # ================================
+    main = { # ================================
       # Node Group Basic Configuration
       # ================================
       name            = "${local.name}-main"
-      use_name_prefix = false # Use exact name without timestamp suffix for predictable naming      # ================================
+      use_name_prefix = true # Use name prefix with timestamp for uniqueness and avoiding conflicts# ================================
       # Instance & Capacity Configuration
       # ================================
       instance_types = var.node_instance_types
@@ -125,15 +124,13 @@ module "eks" {
       # ================================
       min_size     = var.node_min_size
       max_size     = var.node_max_size
-      desired_size = var.node_desired_size
-
-      # ================================
+      desired_size = var.node_desired_size # ================================
       # Launch Template Configuration
       # ================================
       create_launch_template          = true
       launch_template_name            = "${local.name}-node-template"
       launch_template_description     = "Production-optimized launch template for ${local.name} EKS managed node group"
-      launch_template_use_name_prefix = false # Consistent with node group naming
+      launch_template_use_name_prefix = true # Use prefix for uniqueness and avoiding conflicts
 
       # Enhanced launch template tags for better resource tracking
       launch_template_tags = merge(local.tags, {
