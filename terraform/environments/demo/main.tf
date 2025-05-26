@@ -15,14 +15,13 @@ terraform {
       version = "~> 2.0"
     }
   }
-
   # Remote state configuration
   backend "s3" {
-    bucket         = "sedaro-nano-terraform-state"
-    key            = "demo/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "sedaro-nano-terraform-state-lock"
-    encrypt        = true
+    bucket       = "sedaro-nano-terraform-state"
+    key          = "demo/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true  # Modern S3-native state locking
   }
 }
 
