@@ -105,8 +105,17 @@ variable "node_ami_type" {
   default     = "AL2_x86_64"
 
   validation {
-    condition     = contains(["AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64", "CUSTOM"], var.node_ami_type)
-    error_message = "AMI type must be one of: AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM"
+    condition = contains([
+      "AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64",
+      "AL2023_x86_64_STANDARD", "AL2023_ARM_64_STANDARD",
+      "BOTTLEROCKET_x86_64", "BOTTLEROCKET_ARM_64",
+      "CUSTOM"
+    ], var.node_ami_type)
+    error_message = <<-MSG
+      AMI type must be one of: AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64,
+      AL2023_x86_64_STANDARD, AL2023_ARM_64_STANDARD,
+      BOTTLEROCKET_x86_64, BOTTLEROCKET_ARM_64, CUSTOM
+    MSG
   }
 }
 
