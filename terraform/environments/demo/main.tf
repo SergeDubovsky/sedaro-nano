@@ -21,7 +21,7 @@ terraform {
     key          = "demo/terraform.tfstate"
     region       = "us-east-1"
     encrypt      = true
-    use_lockfile = true  # Modern S3-native state locking
+    use_lockfile = true # Modern S3-native state locking
   }
 }
 
