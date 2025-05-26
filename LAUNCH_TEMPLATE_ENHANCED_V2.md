@@ -202,8 +202,41 @@ terraform apply
 3. **Security Audit** - Verify compliance with security requirements
 4. **Monitoring Setup** - Configure CloudWatch dashboards and alerts
 
+## 🚨 Important: AMI Deprecation Notice
+
+### Amazon Linux 2 (AL2) Deprecation Timeline
+
+**⚠️ Critical Update Required:**
+- **Deadline:** November 26, 2025
+- **Impact:** Amazon EKS will stop publishing AL2-optimized AMIs
+- **Last K8s Version with AL2:** 1.32
+- **Future Versions (1.33+):** Only AL2023 and Bottlerocket AMIs
+
+### Current Configuration Update
+
+The configuration has been updated to use **Amazon Linux 2023** for future-proofing:
+
+```terraform
+node_ami_type = "AL2023_x86_64_STANDARD"  # Updated from AL2_x86_64
+```
+
+### Available AMI Types (Post-Deprecation)
+
+| AMI Type | Description | Use Case |
+|----------|-------------|----------|
+| `AL2023_x86_64_STANDARD` | Amazon Linux 2023 (x86_64) | General purpose workloads |
+| `AL2023_ARM_64_STANDARD` | Amazon Linux 2023 (ARM64) | ARM-based instances (Graviton) |
+| `BOTTLEROCKET_x86_64` | Bottlerocket (x86_64) | Security-focused, minimal OS |
+| `BOTTLEROCKET_ARM_64` | Bottlerocket (ARM64) | ARM + security-focused |
+
+### Migration Recommendation
+
+1. **Immediate:** Use AL2023 for all new deployments
+2. **Before Nov 2025:** Migrate existing AL2 node groups to AL2023
+3. **K8s 1.33+:** Ensure compatibility with AL2023 or Bottlerocket only
+
 ---
 
-**Status:** ✅ Complete - Production-ready EKS launch template with comprehensive enhancements
-**Date:** May 26, 2025
-**Impact:** Significantly improved infrastructure quality, security, and maintainability
+**Status:** ✅ Complete - Production-ready EKS launch template with comprehensive enhancements  
+**Updated:** May 26, 2025 - Added AL2023 migration for AMI deprecation  
+**Impact:** Future-proofed against AL2 deprecation + improved infrastructure quality

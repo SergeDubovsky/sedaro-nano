@@ -59,7 +59,7 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = local.name
-  cluster_version = "1.32"
+  cluster_version = "1.32" # Last version with AL2 AMI support (AL2 deprecated Nov 26, 2025)
 
   vpc_id                         = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
@@ -112,12 +112,14 @@ module "eks" {
       # Node Group Basic Configuration
       # ================================
       name            = "${local.name}-main"
-      use_name_prefix = true # Use name prefix with timestamp for uniqueness and avoiding conflicts# ================================
-      # Instance & Capacity Configuration
+      use_name_prefix = true # Use name prefix with timestamp for uniqueness and avoiding conflicts      # ================================
+      # Instance & Capacity Configuration  
       # ================================
       instance_types = var.node_instance_types
       capacity_type  = var.node_capacity_type # Configurable: ON_DEMAND or SPOT
       ami_type       = var.node_ami_type      # Configurable AMI type
+      # Note: AL2 AMIs deprecated after Nov 26, 2025. Use AL2023_x86_64_STANDARD or BOTTLEROCKET_*
+      # From K8s 1.33+, only AL2023 and Bottlerocket AMIs will be available
 
       # ================================
       # Auto Scaling Configuration

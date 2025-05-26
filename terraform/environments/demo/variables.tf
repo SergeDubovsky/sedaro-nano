@@ -87,9 +87,9 @@ variable "enable_detailed_monitoring" {
 }
 
 variable "node_ami_type" {
-  description = "Type of Amazon Machine Image (AMI) for worker nodes"
+  description = "Type of Amazon Machine Image (AMI) for worker nodes. AL2023 recommended (AL2 deprecated Nov 2025)"
   type        = string
-  default     = "AL2_x86_64"
+  default     = "AL2023_x86_64_STANDARD" # Future-proof: AL2 deprecated after Nov 26, 2025
 }
 
 variable "node_capacity_type" {
