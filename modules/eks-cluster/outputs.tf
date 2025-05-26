@@ -49,3 +49,8 @@ output "kubectl_config_command" {
   description = "Command to configure kubectl"
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
+
+output "oidc_provider_arn" {
+  description = "OIDC Provider ARN for the EKS cluster"
+  value       = module.eks.oidc_provider_arn
+}

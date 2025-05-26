@@ -6,14 +6,17 @@
 **/.vscode
 **/instance
 **/database.db
-terraform-bootstrap/.terraform
-terraform-bootstrap/terraform.tfstate
-terraform-bootstrap/.terraform.tfstate.lock.info
-terraform-bootstrap/terraform.tfstate.backup
-terraform-github-secrets/terraform.tfvars
-terraform-github-secrets/.terraform
-terraform-github-secrets/.terraform.lock.hcl
-terraform-github-secrets/terraform.tfstate
-.temp/terraform.tfstate
-terraform-addons/.terraform
-terraform-addons/.terraform.lock.hcl
+
+# Terraform files
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/.terraform.tfstate.lock.info
+
+# Legacy Terraform archive (preserve state files)
+terraform-legacy-archive/
+
+# Environment-specific variable files (keep templates)
+environments/**/terraform.tfvars
+!environments/**/terraform.tfvars.example

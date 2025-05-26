@@ -92,5 +92,26 @@ Here are some suggestions to get you thinking:
 - The Python and React code will auto-reload when edited, but Rust changes require manual rebuilds.
 - It's possible to work on parts of this repo outside of the docker containers for more rapid development.
 
+### Infrastructure
+This project includes a modular Terraform configuration for deploying to AWS EKS:
+
+- **Modular Architecture**: Separated into reusable modules (`bootstrap`, `eks-cluster`, `eks-addons`, `github-secrets`)
+- **Environment-based**: Current demo environment in `environments/demo/`
+- **CI/CD Ready**: GitHub Actions workflows for automated deployment and destruction
+- **Production Ready**: Includes monitoring, autoscaling, and security best practices
+
+For detailed infrastructure documentation, see [TERRAFORM_MIGRATION.md](./TERRAFORM_MIGRATION.md).
+
+#### Quick Deploy to AWS
+```bash
+# Navigate to demo environment
+cd environments/demo
+
+# Initialize and deploy
+terraform init
+terraform plan
+terraform apply
+```
+
 ### Tutorial
 In the initial version, the first body is not affected by the gravitational force of the second. See `app/query_tutorial.md` for guidance on fixing this, and a brief introduction to the nano query language.

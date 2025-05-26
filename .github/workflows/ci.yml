@@ -4,10 +4,9 @@ on:
   push:
     branches: [ main ]
     paths-ignore:
-      - 'terraform/**'
-      - 'terraform-addons/**'
-      - 'terraform-bootstrap/**'
-      - 'terraform-github-secrets/**'
+      - 'terraform-legacy-archive/**'
+      - 'environments/**'
+      - 'modules/**'
       - 'k8s/**'
       - '**/*.md'
       - '.github/workflows/terraform-infra-two-stage.yml'

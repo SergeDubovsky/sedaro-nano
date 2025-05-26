@@ -51,8 +51,8 @@ jobs:
           kubectl delete -f k8s/backend-deployment.yaml --ignore-not-found=true
           kubectl delete -f k8s/backend-service.yaml --ignore-not-found=true
 
-  destroy-addons:
-    name: Destroy Add-ons (Stage 2)
+  destroy-demo:
+    name: Destroy Demo Environment
     runs-on: ubuntu-latest
     needs: destroy-workloads
     if: github.event.inputs.confirm_destroy == 'destroy'
@@ -72,40 +72,14 @@ jobs:
         with:
           terraform_version: 1.12.1
 
-      - name: Terraform Init - Add-ons
-        working-directory: ./terraform-addons
+      - name: Terraform Init - Demo Environment
+        working-directory: ./environments/demo
         run: terraform init
 
-      - name: Terraform Refresh - Add-ons
-        working-directory: ./terraform-addons
+      - name: Terraform Refresh - Demo Environment
+        working-directory: ./environments/demo
         run: terraform refresh
 
-      - name: Terraform Destroy - Add-ons
-        working-directory: ./terraform-addons
+      - name: Terraform Destroy - Demo Environment
+        working-directory: ./environments/demo
         run: terraform destroy -auto-approve
-
-  destroy-infrastructure:
-    name: Destroy Infrastructure (Stage 1)
-    runs-on: ubuntu-latest
-    needs: destroy-addons
-    if: github.event.inputs.confirm_destroy == 'destroy'
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-      - name: Terraform Init - Infrastructure
-        working-directory: ./terraform
-        run: terraform init
-
-      - name: Terraform Destroy - Infrastructure
-        working-directory: ./terraform
-        run: terraform destroy -auto-approve -var="github_actions_role_arn=${{ secrets.AWS_ROLE_ARN }}" -var="admin_user_arn=${{ secrets.ADMIN_USER_ARN }}"

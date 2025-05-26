@@ -1,19 +1,16 @@
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "sedaro-nano"
 }
 
 variable "environment" {
   description = "Environment name"
   type        = string
-  default     = "demo"
 }
 
 variable "aws_region" {
   type        = string
   description = "AWS region for cluster and S3 state backend"
-  default     = "us-east-1"
 }
 
 variable "vpc_cidr" {
