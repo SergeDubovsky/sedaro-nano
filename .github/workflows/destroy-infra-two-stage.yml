@@ -1,7 +1,7 @@
 name: Destroy Infrastructure (Two-Stage)
 
 on:
-  workflow_dispatch:  # Only allow manual triggering for destruction
+  workflow_dispatch:
     inputs:
       confirm_destroy:
         description: 'Type "destroy" to confirm infrastructure destruction'
@@ -9,8 +9,8 @@ on:
         type: string
 
 permissions:
-  id-token: write   # Required for OIDC
-  contents: read    # Required to checkout code
+  id-token: write
+  contents: read
 
 jobs:
   confirm:
@@ -73,13 +73,19 @@ jobs:
           terraform_version: 1.12.1
 
       - name: Terraform Init - Demo Environment
-        working-directory: ./environments/demo
+        working-directory: ./terraform/environments/demo
         run: terraform init
 
       - name: Terraform Refresh - Demo Environment
-        working-directory: ./environments/demo
+        working-directory: ./terraform/environments/demo
+        env:
+          TF_VAR_github_actions_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+          TF_VAR_admin_user_arn: ${{ secrets.ADMIN_USER_ARN || '' }}
         run: terraform refresh
 
       - name: Terraform Destroy - Demo Environment
-        working-directory: ./environments/demo
+        working-directory: ./terraform/environments/demo
+        env:
+          TF_VAR_github_actions_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+          TF_VAR_admin_user_arn: ${{ secrets.ADMIN_USER_ARN || '' }}
         run: terraform destroy -auto-approve

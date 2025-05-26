@@ -5,18 +5,23 @@ This project has been refactored from a monolithic Terraform structure to a modu
 ## Directory Structure
 
 ```
-├── modules/                           # Reusable Terraform modules
-│   ├── bootstrap/                     # Bootstrap infrastructure (IAM, S3, DynamoDB)
-│   ├── eks-addons/                    # EKS add-ons (Load Balancer Controller, etc.)
-│   ├── eks-cluster/                   # Core EKS cluster infrastructure
-│   └── github-secrets/                # GitHub Actions secrets management
-├── environments/                      # Environment-specific configurations
-│   └── demo/                         # Demo environment configuration
-└── terraform-legacy-archive/         # Archived legacy Terraform directories
-    ├── terraform/                    # Legacy - main EKS infrastructure
-    ├── terraform-addons/             # Legacy - EKS add-ons
-    ├── terraform-bootstrap/           # Legacy - bootstrap infrastructure
-    └── terraform-github-secrets/     # Legacy - GitHub secrets
+├── terraform/                        # All Infrastructure as Code
+│   ├── modules/                      # Reusable Terraform modules
+│   │   ├── bootstrap/                # Bootstrap infrastructure (IAM, S3, DynamoDB)
+│   │   ├── eks-addons/               # EKS add-ons (Load Balancer Controller, etc.)
+│   │   ├── eks-cluster/              # Core EKS cluster infrastructure
+│   │   └── github-secrets/           # GitHub Actions secrets management
+│   ├── environments/                 # Environment-specific configurations
+│   │   └── demo/                     # Demo environment configuration
+│   └── legacy-archive/               # Archived legacy Terraform directories
+│       ├── terraform/                # Legacy - main EKS infrastructure
+│       ├── terraform-addons/         # Legacy - EKS add-ons
+│       ├── terraform-bootstrap/      # Legacy - bootstrap infrastructure
+│       └── terraform-github-secrets/ # Legacy - GitHub secrets
+├── app/                              # Backend application code
+├── web/                              # Frontend application code
+├── queries/                          # Query parsing library
+└── k8s/                              # Kubernetes manifests
 ```
 
 ## Modules Overview
@@ -71,7 +76,7 @@ The demo environment uses all modules to create a complete EKS infrastructure:
 
 ```bash
 # Navigate to the demo environment
-cd environments/demo
+cd terraform/environments/demo
 
 # Initialize Terraform
 terraform init
@@ -87,14 +92,14 @@ terraform apply
 
 The workflows have been updated to use the new modular structure:
 
-- **Deploy**: Triggered on pushes to main branch affecting `environments/**` or `modules/**`
+- **Deploy**: Triggered on pushes to main branch affecting `terraform/environments/**` or `terraform/modules/**`
 - **Destroy**: Manual workflow requiring confirmation
 
 ### Adding New Environments
 
 To create a new environment (e.g., staging, production):
 
-1. Create a new directory under `environments/`
+1. Create a new directory under `terraform/environments/`
 2. Copy the demo environment files as a template
 3. Modify `terraform.tfvars` with environment-specific values
 4. Update variable values in `variables.tf` if needed
@@ -104,12 +109,12 @@ Example for staging environment:
 
 ```bash
 # Create staging environment
-mkdir -p environments/staging
-cp environments/demo/* environments/staging/
+mkdir -p terraform/environments/staging
+cp terraform/environments/demo/* terraform/environments/staging/
 
 # Modify staging-specific values
-edit environments/staging/terraform.tfvars
-edit environments/staging/variables.tf
+edit terraform/environments/staging/terraform.tfvars
+edit terraform/environments/staging/variables.tf
 ```
 
 ## Module Variables
@@ -129,12 +134,12 @@ edit environments/staging/variables.tf
 
 ## Migration from Legacy Structure
 
-The legacy Terraform directories have been moved to `terraform-legacy-archive/` to preserve state files and configuration history. The archive contains:
+The legacy Terraform directories have been moved to `terraform/legacy-archive/` to preserve state files and configuration history. The archive contains:
 
-- `terraform-legacy-archive/terraform/` - Original EKS infrastructure
-- `terraform-legacy-archive/terraform-addons/` - Original EKS add-ons  
-- `terraform-legacy-archive/terraform-bootstrap/` - Original bootstrap infrastructure
-- `terraform-legacy-archive/terraform-github-secrets/` - Original GitHub secrets
+- `terraform/legacy-archive/terraform/` - Original EKS infrastructure
+- `terraform/legacy-archive/terraform-addons/` - Original EKS add-ons  
+- `terraform/legacy-archive/terraform-bootstrap/` - Original bootstrap infrastructure
+- `terraform/legacy-archive/terraform-github-secrets/` - Original GitHub secrets
 
 **Important**: The archived directories contain active Terraform state files. If you need to manage existing resources deployed with the legacy configuration, use the archived directories until resources are migrated or destroyed.
 

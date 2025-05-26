@@ -7,16 +7,13 @@
 **/instance
 **/database.db
 
-# Terraform files
+# Terraform state and lock files
 **/.terraform/
 **/.terraform.lock.hcl
 **/terraform.tfstate
 **/terraform.tfstate.backup
 **/.terraform.tfstate.lock.info
 
-# Legacy Terraform archive (preserve state files)
-terraform-legacy-archive/
-
 # Environment-specific variable files (keep templates)
-environments/**/terraform.tfvars
-!environments/**/terraform.tfvars.example
+terraform/environments/**/terraform.tfvars
+!terraform/environments/**/terraform.tfvars.example

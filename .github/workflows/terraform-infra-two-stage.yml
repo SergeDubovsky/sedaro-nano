@@ -4,14 +4,14 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'environments/**'
-      - 'modules/**'
+      - 'terraform/environments/**'
+      - 'terraform/modules/**'
       - '.github/workflows/terraform-infra-two-stage.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'environments/**'
-      - 'modules/**'
+      - 'terraform/environments/**'
+      - 'terraform/modules/**'
       - '.github/workflows/terraform-infra-two-stage.yml'
   workflow_dispatch:  # Allow manual triggering
 
@@ -30,21 +30,19 @@ jobs:
         
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.12.1
           
       - name: Terraform Format Check - Demo Environment
-        working-directory: ./environments/demo
+        working-directory: ./terraform/environments/demo
         run: terraform fmt -check -recursive
       
       - name: Terraform Validate - Demo Environment
-        working-directory: ./environments/demo
+        working-directory: ./terraform/environments/demo
         run: |
           terraform init -backend=false
           terraform validate
 
       - name: Terraform Format Check - Modules
-        working-directory: ./modules
+        working-directory: ./terraform/modules
         run: terraform fmt -check -recursive
 
   deploy-demo:
@@ -69,13 +67,19 @@ jobs:
           terraform_version: 1.12.1
 
       - name: Terraform Init - Demo Environment
-        working-directory: ./environments/demo
+        working-directory: ./terraform/environments/demo
         run: terraform init
 
       - name: Terraform Plan - Demo Environment
-        working-directory: ./environments/demo
+        working-directory: ./terraform/environments/demo
+        env:
+          TF_VAR_github_actions_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+          TF_VAR_admin_user_arn: ${{ secrets.ADMIN_USER_ARN || '' }}
         run: terraform plan -input=false -out=tfplan
 
       - name: Terraform Apply - Demo Environment
-        working-directory: ./environments/demo
+        working-directory: ./terraform/environments/demo
+        env:
+          TF_VAR_github_actions_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+          TF_VAR_admin_user_arn: ${{ secrets.ADMIN_USER_ARN || '' }}
         run: terraform apply -auto-approve tfplan
