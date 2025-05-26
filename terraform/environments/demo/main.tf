@@ -6,6 +6,14 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.0"
+    }
   }
 
   # Remote state configuration
@@ -28,6 +36,29 @@ provider "aws" {
       ManagedBy   = "terraform"
     }
   }
+}
+
+# Data sources to get EKS cluster information for helm and kubernetes providers
+data "aws_eks_cluster" "cluster" {
+  name = module.eks_cluster.cluster_name
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks_cluster.cluster_name
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = data.aws_eks_cluster.cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.cluster.token
+  }
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
 }
 
 ################################################################################
@@ -69,6 +100,4 @@ module "eks_addons" {
   # Addon configuration
   enable_metrics_server     = var.enable_metrics_server
   enable_cluster_autoscaler = var.enable_cluster_autoscaler
-
-  depends_on = [module.eks_cluster]
 }
