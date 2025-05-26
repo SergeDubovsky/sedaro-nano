@@ -68,11 +68,11 @@ provider "kubernetes" {
 module "eks_cluster" {
   source = "../../modules/eks-cluster"
 
-  project_name     = var.project_name
-  environment      = var.environment
-  aws_region       = var.aws_region
-  vpc_cidr         = var.vpc_cidr
-  
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+  vpc_cidr     = var.vpc_cidr
+
   # Node configuration
   node_instance_types = var.node_instance_types
   node_desired_size   = var.node_desired_size
@@ -91,15 +91,15 @@ module "eks_cluster" {
 module "eks_addons" {
   source = "../../modules/eks-addons"
 
-  project_name                            = var.project_name
-  environment                             = var.environment
-  aws_region                              = var.aws_region
-  cluster_name                            = module.eks_cluster.cluster_name
-  aws_load_balancer_controller_role_arn   = module.eks_cluster.aws_load_balancer_controller_role_arn
+  project_name                          = var.project_name
+  environment                           = var.environment
+  aws_region                            = var.aws_region
+  cluster_name                          = module.eks_cluster.cluster_name
+  aws_load_balancer_controller_role_arn = module.eks_cluster.aws_load_balancer_controller_role_arn
 
   # Addon configuration
-  enable_metrics_server      = var.enable_metrics_server
-  enable_cluster_autoscaler  = var.enable_cluster_autoscaler
+  enable_metrics_server     = var.enable_metrics_server
+  enable_cluster_autoscaler = var.enable_cluster_autoscaler
 
   depends_on = [module.eks_cluster]
 }

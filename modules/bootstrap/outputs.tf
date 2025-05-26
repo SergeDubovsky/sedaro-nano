@@ -20,7 +20,7 @@ output "github_oidc_provider_arn" {
 
 output "github_actions_workflow_config" {
   description = "Configuration snippet for GitHub Actions workflow"
-  value = <<-EOT
+  value       = <<-EOT
     # Add this to your GitHub Actions workflow file:
     
     permissions:

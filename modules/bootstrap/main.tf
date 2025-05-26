@@ -2,13 +2,13 @@ locals {
   # Extract organization and repo name
   github_org  = split("/", var.github_repo)[0]
   github_repo = split("/", var.github_repo)[1]
-  
+
   # Role name for GitHub Actions
   github_actions_role_name = "${var.project_name}-github-actions-role"
-  
+
   # State resources
-  state_bucket_name      = "${var.project_name}-terraform-state"
-  state_lock_table_name  = "${var.project_name}-terraform-state-lock"
+  state_bucket_name     = "${var.project_name}-terraform-state"
+  state_lock_table_name = "${var.project_name}-terraform-state-lock"
 }
 
 # OIDC Provider for GitHub
@@ -16,7 +16,7 @@ resource "aws_iam_openid_connect_provider" "github" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = ["d1eb23a46d17d68fd92564c2f1f1601764d8e349", "6938fd4d98bab03faadb97b34396831e3780aea1"]
-  
+
   tags = {
     Name = "GitHub-OIDC-Provider"
   }
@@ -25,7 +25,7 @@ resource "aws_iam_openid_connect_provider" "github" {
 # IAM Role for GitHub Actions
 resource "aws_iam_role" "github_actions" {
   name = local.github_actions_role_name
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -46,14 +46,14 @@ resource "aws_iam_role" "github_actions" {
       }
     ]
   })
-  
+
   description = "Role for GitHub Actions to deploy Terraform infrastructure for ${var.project_name}"
 }
 
 # Create S3 bucket for Terraform state
 resource "aws_s3_bucket" "terraform_state" {
   bucket = local.state_bucket_name
-  
+
   # Prevent accidental deletion
   lifecycle {
     prevent_destroy = true
@@ -63,7 +63,7 @@ resource "aws_s3_bucket" "terraform_state" {
 # Enable versioning on state bucket
 resource "aws_s3_bucket_versioning" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
-  
+
   versioning_configuration {
     status = "Enabled"
   }
@@ -72,7 +72,7 @@ resource "aws_s3_bucket_versioning" "terraform_state" {
 # Enable server-side encryption on state bucket
 resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
-  
+
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
@@ -83,7 +83,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" 
 # Block public access to the state bucket
 resource "aws_s3_bucket_public_access_block" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
-  
+
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -95,7 +95,7 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
   name         = local.state_lock_table_name
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
-  
+
   attribute {
     name = "LockID"
     type = "S"
@@ -106,12 +106,12 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
 resource "aws_iam_policy" "terraform_state_access" {
   name        = "${var.project_name}-terraform-state-access"
   description = "Policy granting access to Terraform state bucket and lock table"
-  
+
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow",        
+        Effect = "Allow",
         Action = [
           "s3:GetObject",
           "s3:PutObject",
@@ -140,7 +140,7 @@ resource "aws_iam_policy" "terraform_state_access" {
 resource "aws_iam_policy" "eks_management" {
   name        = "${var.project_name}-eks-management"
   description = "Policy granting permissions to create and manage EKS clusters for ${var.project_name}"
-  
+
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -149,7 +149,7 @@ resource "aws_iam_policy" "eks_management" {
         Action = [
           "eks:*",
           "ec2:*",
-          "iam:*", 
+          "iam:*",
           "elasticloadbalancing:*",
           "autoscaling:*",
           # KMS permissions for EKS
@@ -179,8 +179,8 @@ resource "aws_iam_policy" "eks_management" {
           "logs:PutLogEvents",
           "logs:PutRetentionPolicy",
           "logs:ListTagsForResource", # Added for EKS log group tagging
-          "logs:TagResource", # Add TagResource for logs if needed by module
-          "logs:DeleteLogGroup" // Added for EKS log group deletion
+          "logs:TagResource",         # Add TagResource for logs if needed by module
+          "logs:DeleteLogGroup"       // Added for EKS log group deletion
         ],
         Resource = "*" # Keep as "*" for broad EKS management, or scope down if required
       }
