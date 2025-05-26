@@ -108,10 +108,10 @@ module "eks" {
     # See https://github.com/aws/containers-roadmap/issues/1666 for more context
     iam_role_attach_cni_policy = true
   }
-
   eks_managed_node_groups = {
     main = {
-      name = "${local.name}-main"
+      name           = "${local.name}-main"
+      use_name_prefix = false  # Use exact name without timestamp suffix
 
       instance_types = var.node_instance_types
       capacity_type  = "SPOT" # Cost optimization: use SPOT instances
