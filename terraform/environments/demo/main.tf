@@ -67,12 +67,17 @@ module "eks_cluster" {
   environment  = var.environment
   aws_region   = var.aws_region
   vpc_cidr     = var.vpc_cidr
-
   # Node configuration
   node_instance_types = var.node_instance_types
   node_desired_size   = var.node_desired_size
   node_max_size       = var.node_max_size
   node_min_size       = var.node_min_size
+
+  # Launch template configuration (minimal for demo)
+  enable_detailed_monitoring             = var.enable_detailed_monitoring
+  node_ami_type                          = var.node_ami_type
+  node_capacity_type                     = var.node_capacity_type
+  node_update_max_unavailable_percentage = var.node_update_max_unavailable_percentage
 
   # Access configuration
   github_actions_role_arn = var.github_actions_role_arn

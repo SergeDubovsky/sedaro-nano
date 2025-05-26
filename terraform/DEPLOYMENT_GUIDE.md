@@ -36,7 +36,7 @@ git push origin main
 
 **Option B: Manual Deployment**
 1. Go to GitHub Actions tab in your repository
-2. Select "Terraform Infrastructure (Two-Stage)" workflow
+2. Select "Terraform Deploy Infrastructure" workflow
 3. Click "Run workflow"
 4. Click "Run workflow" again to confirm
 - Kubernetes workloads will be deployed
@@ -45,7 +45,7 @@ git push origin main
 
 ### Via GitHub Actions
 1. Go to GitHub Actions
-2. Run "Destroy Infrastructure (Two-Stage)" workflow
+2. Run "Terraform Destroy Infrastructure" workflow
 3. Enter "destroy" when prompted
 
 ### Manual Cleanup

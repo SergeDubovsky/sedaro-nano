@@ -73,3 +73,33 @@ variable "enable_cluster_autoscaler" {
   type        = bool
   default     = false
 }
+
+# ================================
+# Launch Template Configuration (Simplified for Demo)
+# ================================
+# Note: Volume configuration variables removed for demo simplicity
+# EKS will use defaults: 20GB gp2 root volume
+
+variable "enable_detailed_monitoring" {
+  description = "Enable detailed CloudWatch monitoring for worker nodes"
+  type        = bool
+  default     = true
+}
+
+variable "node_ami_type" {
+  description = "Type of Amazon Machine Image (AMI) for worker nodes"
+  type        = string
+  default     = "AL2_x86_64"
+}
+
+variable "node_capacity_type" {
+  description = "Type of capacity associated with the EKS Node Group. Valid values: ON_DEMAND, SPOT"
+  type        = string
+  default     = "SPOT"
+}
+
+variable "node_update_max_unavailable_percentage" {
+  description = "Maximum percentage of nodes unavailable during update"
+  type        = number
+  default     = 25
+}

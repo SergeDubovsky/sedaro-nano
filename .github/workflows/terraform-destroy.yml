@@ -1,4 +1,4 @@
-name: Destroy Infrastructure (Two-Stage)
+name: Terraform Destroy Infrastructure
 
 on:
   workflow_dispatch:

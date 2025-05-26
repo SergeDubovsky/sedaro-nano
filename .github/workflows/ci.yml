@@ -7,8 +7,8 @@ on:
       - 'terraform/**'
       - 'k8s/**'
       - '**/*.md'
-      - '.github/workflows/terraform-infra-two-stage.yml'
-      - '.github/workflows/destroy-infra-two-stage.yml'
+      - '.github/workflows/terraform-deploy.yml'
+      - '.github/workflows/terraform-destroy.yml'
       - '.github/workflows/deploy-k8s.yml'
 
 jobs:

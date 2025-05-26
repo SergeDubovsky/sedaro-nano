@@ -91,7 +91,7 @@ echo ""
 echo "⚙️  Validating GitHub Actions workflows..."
 echo "---------------------------------------"
 
-WORKFLOWS=(".github/workflows/terraform-infra-two-stage.yml" ".github/workflows/destroy-infra-two-stage.yml" ".github/workflows/ci.yml")
+WORKFLOWS=(".github/workflows/terraform-deploy.yml" ".github/workflows/terraform-destroy.yml" ".github/workflows/ci.yml")
 
 for workflow in "${WORKFLOWS[@]}"; do
     if [ -f "$workflow" ]; then

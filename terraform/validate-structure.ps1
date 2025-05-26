@@ -128,8 +128,8 @@ Write-Host "⚙️  Validating GitHub Actions workflows..." -ForegroundColor Cya
 Write-Host "---------------------------------------" -ForegroundColor Cyan
 
 $workflows = @(
-    "..\\.github\\workflows\\terraform-infra-two-stage.yml",
-    "..\\.github\\workflows\\destroy-infra-two-stage.yml",
+    "..\\.github\\workflows\\terraform-deploy.yml",
+    "..\\.github\\workflows\\terraform-destroy.yml",
     "..\\.github\\workflows\\ci.yml"
 )
 
@@ -154,7 +154,7 @@ Write-Host ""
 Write-Host "📚 Checking documentation..." -ForegroundColor Cyan
 Write-Host "-------------------------" -ForegroundColor Cyan
 
-$docs = @("..\\TERRAFORM_MIGRATION.md", "..\\TERRAFORM_CLEANUP_PLAN.md", "..\\README.md")
+$docs = @("..\\README.md", "..\\LAUNCH_TEMPLATE_ENHANCED_V2.md", "..\\GITHUB_ACTIONS_SETUP.md", "DEPLOYMENT_GUIDE.md")
 
 foreach ($doc in $docs) {
     if (Test-Path $doc) {

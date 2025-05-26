@@ -96,7 +96,6 @@ module "eks" {
       }
     } : {}
   )
-
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     instance_types = var.node_instance_types
@@ -110,30 +109,138 @@ module "eks" {
   }
   eks_managed_node_groups = {
     main = {
+      # ================================
+      # Node Group Basic Configuration
+      # ================================
       name            = "${local.name}-main"
-      use_name_prefix = false # Use exact name without timestamp suffix
-
+      use_name_prefix = false # Use exact name without timestamp suffix for predictable naming      # ================================
+      # Instance & Capacity Configuration
+      # ================================
       instance_types = var.node_instance_types
-      capacity_type  = "SPOT" # Cost optimization: use SPOT instances
+      capacity_type  = var.node_capacity_type # Configurable: ON_DEMAND or SPOT
+      ami_type       = var.node_ami_type      # Configurable AMI type
 
+      # ================================
+      # Auto Scaling Configuration
+      # ================================
       min_size     = var.node_min_size
       max_size     = var.node_max_size
       desired_size = var.node_desired_size
 
-      # Launch template configuration
-      launch_template_name        = "${local.name}-main"
-      launch_template_description = "Launch template for ${local.name} EKS managed node group"
+      # ================================
+      # Launch Template Configuration
+      # ================================
+      create_launch_template          = true
+      launch_template_name            = "${local.name}-node-template"
+      launch_template_description     = "Production-optimized launch template for ${local.name} EKS managed node group"
+      launch_template_use_name_prefix = false # Consistent with node group naming
 
-      update_config = {
-        max_unavailable_percentage = 33 # or set `max_unavailable`
+      # Enhanced launch template tags for better resource tracking
+      launch_template_tags = merge(local.tags, {
+        Component      = "launch-template"
+        NodeGroup      = "main"
+        Purpose        = "eks-worker-nodes"
+        CostCenter     = var.environment
+        LaunchTemplate = "${local.name}-node-template"
+      }) # ================================
+      # Storage Configuration (EBS)
+      # ================================
+      # For demo environments, we can rely on EKS defaults (20GB gp2)
+      # For production, uncomment and customize the block_device_mappings below
+
+      # block_device_mappings = {
+      #   xvda = {
+      #     device_name = "/dev/xvda"
+      #     ebs = {
+      #       volume_size           = var.node_volume_size       # Configurable volume size
+      #       volume_type           = var.node_volume_type       # Configurable volume type
+      #       iops                  = var.node_volume_iops       # Configurable IOPS
+      #       throughput            = var.node_volume_throughput # Configurable throughput
+      #       encrypted             = true                       # Encryption at rest for security compliance
+      #       delete_on_termination = true                       # Clean up on node termination
+      #       kms_key_id            = null                       # Use default AWS managed key (aws/ebs)
+      #     }
+      #   }
+      # }
+
+      # ================================
+      # Security Configuration (IMDS)
+      # ================================
+      metadata_options = {
+        http_endpoint               = "enabled"  # Enable metadata service
+        http_tokens                 = "required" # Require IMDSv2 tokens (security best practice)
+        http_put_response_hop_limit = 2          # Limit metadata access to direct requests
+        instance_metadata_tags      = "enabled"  # Enable instance tags in metadata
       }
 
-      labels = {
+      # ================================
+      # Monitoring & Observability
+      # ================================
+      enable_monitoring = var.enable_detailed_monitoring # Configurable monitoring
+
+      # ================================
+      # Network Performance Optimization
+      # ================================
+      # Enhanced networking for better pod-to-pod communication
+      enable_bootstrap_user_data = true
+      pre_bootstrap_user_data    = <<-EOT
+        #!/bin/bash
+        # Optimize network performance for Kubernetes workloads
+        echo 'net.core.rmem_default = 262144' >> /etc/sysctl.conf
+        echo 'net.core.rmem_max = 16777216' >> /etc/sysctl.conf
+        echo 'net.core.wmem_default = 262144' >> /etc/sysctl.conf
+        echo 'net.core.wmem_max = 16777216' >> /etc/sysctl.conf
+        sysctl -p
+        
+        # Set optimal container runtime settings
+        mkdir -p /etc/containerd/conf.d
+        cat > /etc/containerd/conf.d/99-custom.toml << EOF
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+  SystemdCgroup = true
+EOF
+        systemctl restart containerd
+      EOT
+
+      # ================================
+      # Rolling Update Configuration
+      # ================================
+      update_config = {
+        max_unavailable_percentage = var.node_update_max_unavailable_percentage # Configurable update strategy
+      }
+
+      # ================================
+      # Kubernetes Configuration
+      # ================================
+      # Node labels for workload scheduling
+      labels = merge({
+        # Standard labels
         Environment = var.environment
         NodeGroup   = "main"
-      }
+        Project     = var.project_name
+        ManagedBy   = "terraform"
 
-      tags = local.tags
+        # EKS-specific labels
+        "node.kubernetes.io/instance-type" = join(",", var.node_instance_types)
+        "node.kubernetes.io/capacity-type" = lower(var.node_capacity_type)
+
+        # Custom application labels
+        "sedaro.io/workload-type"  = "general"
+        "sedaro.io/cost-optimized" = var.node_capacity_type == "SPOT" ? "true" : "false"
+      }, local.tags)
+
+      # No taints for main node group (accepts all workloads)
+      taints = {} # ================================
+      # Resource Tags
+      # ================================
+      tags = merge(local.tags, {
+        Component    = "node-group"
+        NodeGroup    = "main"
+        CapacityType = lower(var.node_capacity_type)
+        Purpose      = "eks-worker-nodes"
+        AutoScaling  = "enabled"
+        Monitoring   = var.enable_detailed_monitoring ? "enabled" : "disabled"
+        Storage      = "eks-default" # Using EKS default storage (20GB gp2)
+      })
     }
   }
 

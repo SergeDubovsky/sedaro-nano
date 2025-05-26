@@ -33,11 +33,11 @@ The ARN of an IAM user or role that should have admin access to the EKS cluster.
 
 ## How the Variables Are Used
 
-### In terraform-infra-two-stage.yml:
+### In terraform-deploy.yml:
 - `TF_VAR_github_actions_role_arn` = `${{ secrets.AWS_ROLE_ARN }}`
 - `TF_VAR_admin_user_arn` = `${{ secrets.ADMIN_USER_ARN || '' }}`
 
-### In destroy-infra-two-stage.yml:
+### In terraform-destroy.yml:
 - Same environment variables for consistent access
 
 ## EKS Cluster Access

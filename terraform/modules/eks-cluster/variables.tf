@@ -59,3 +59,75 @@ variable "admin_user_arn" {
   type        = string
   default     = ""
 }
+
+# ================================
+# Launch Template Configuration
+# ================================
+
+variable "node_volume_size" {
+  description = "Size of the EBS volume for worker nodes (in GB)"
+  type        = number
+  default     = 30
+}
+
+variable "node_volume_type" {
+  description = "EBS volume type for worker nodes"
+  type        = string
+  default     = "gp3"
+
+  validation {
+    condition     = contains(["gp2", "gp3", "io1", "io2"], var.node_volume_type)
+    error_message = "Volume type must be one of: gp2, gp3, io1, io2"
+  }
+}
+
+variable "node_volume_iops" {
+  description = "IOPS for EBS volume (only applicable for gp3, io1, io2)"
+  type        = number
+  default     = 3000
+}
+
+variable "node_volume_throughput" {
+  description = "Throughput for EBS volume in MB/s (only applicable for gp3)"
+  type        = number
+  default     = 150
+}
+
+variable "enable_detailed_monitoring" {
+  description = "Enable detailed CloudWatch monitoring for worker nodes"
+  type        = bool
+  default     = true
+}
+
+variable "node_ami_type" {
+  description = "Type of Amazon Machine Image (AMI) for worker nodes"
+  type        = string
+  default     = "AL2_x86_64"
+
+  validation {
+    condition     = contains(["AL2_x86_64", "AL2_x86_64_GPU", "AL2_ARM_64", "CUSTOM"], var.node_ami_type)
+    error_message = "AMI type must be one of: AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM"
+  }
+}
+
+variable "node_capacity_type" {
+  description = "Type of capacity associated with the EKS Node Group. Valid values: ON_DEMAND, SPOT"
+  type        = string
+  default     = "SPOT"
+
+  validation {
+    condition     = contains(["ON_DEMAND", "SPOT"], var.node_capacity_type)
+    error_message = "Capacity type must be either ON_DEMAND or SPOT"
+  }
+}
+
+variable "node_update_max_unavailable_percentage" {
+  description = "Maximum percentage of nodes unavailable during update"
+  type        = number
+  default     = 25
+
+  validation {
+    condition     = var.node_update_max_unavailable_percentage >= 1 && var.node_update_max_unavailable_percentage <= 100
+    error_message = "Max unavailable percentage must be between 1 and 100"
+  }
+}
