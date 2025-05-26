@@ -2,30 +2,30 @@
 
 ## Overview
 
-This guide covers deploying the Sedaro Nano infrastructure using the modular Terraform structure via GitHub Actions.
+This guide covers deploying the Sedaro Nano infrastructure using the modular Terraform structure **exclusively via GitHub Actions**. All terraform operations run in the cloud - no local terraform execution required.
 
 ## Prerequisites
 
-1. **AWS Account**: Access to AWS account `047142614703`
-2. **GitHub Repository**: Write access to configure secrets
-3. **Existing Bootstrap Resources**: The following resources already exist:
+1. **GitHub Repository**: Write access to configure secrets
+2. **AWS Account**: Access to AWS account `047142614703`
+3. **Existing Bootstrap Resources**: Already deployed:
    - IAM Role: `arn:aws:iam::047142614703:role/sedaro-nano-github-actions-role`
-   - S3 Bucket: `sedaro-nano-terraform-state-us-east-1`
-   - DynamoDB Table: `sedaro-nano-terraform-locks`
+   - S3 Bucket: `sedaro-nano-terraform-state`
+   - DynamoDB Table: `sedaro-nano-terraform-state-lock`
 
-## Quick Start
+## Quick Start - GitHub Actions Only
 
 ### 1. Configure GitHub Secrets
+
+Set these secrets in your GitHub repository (Settings → Secrets and variables → Actions):
 
 **Required:**
 - `AWS_ROLE_ARN`: `arn:aws:iam::047142614703:role/sedaro-nano-github-actions-role`
 
 **Optional:**
-- `ADMIN_USER_ARN`: Your IAM user/role ARN for kubectl access (or leave empty)
+- `ADMIN_USER_ARN`: Your IAM user/role ARN for kubectl access (leave empty if not needed)
 
-See [GITHUB_ACTIONS_SETUP.md](../GITHUB_ACTIONS_SETUP.md) for detailed instructions.
-
-### 2. Deploy Infrastructure
+### 2. Deploy Infrastructure via GitHub Actions
 
 **Option A: Automatic Deployment**
 ```bash
@@ -35,9 +35,10 @@ git push origin main
 ```
 
 **Option B: Manual Deployment**
-1. Go to GitHub Actions tab
-2. Select "Terraform Infrastructure (Two-Stage)"
+1. Go to GitHub Actions tab in your repository
+2. Select "Terraform Infrastructure (Two-Stage)" workflow
 3. Click "Run workflow"
+4. Click "Run workflow" again to confirm
 - Kubernetes workloads will be deployed
 
 ## Cleanup (if needed)
