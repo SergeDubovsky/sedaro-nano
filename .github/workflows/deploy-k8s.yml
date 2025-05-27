@@ -44,12 +44,12 @@ jobs:
 
       - name: Install yq
         run: |
-          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && \\
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
           sudo chmod +x /usr/bin/yq
 
       - name: Configure kubectl for EKS
         run: |
-          aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }}
+          aws eks update-kubeconfig --name sedaro-nano-demo --region ${{ vars.AWS_REGION || 'us-east-1' }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -60,7 +60,6 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
           AWS_REGION_TO_USE: ${{ vars.AWS_REGION || 'us-east-1' }}
-          # CLUSTER_NAME_TO_USE is available from the configure kubectl step, direct usage of var is fine.
         run: |
           # Ensure AWS CLI is configured for the correct region for ECR login
           aws configure set default.region ${AWS_REGION_TO_USE}
@@ -73,15 +72,15 @@ jobs:
           CHART_BASE_VERSION=$(helm show chart ./helm/sedaro-nano | yq '.version')
           CHART_VERSION="${CHART_BASE_VERSION}-${GITHUB_RUN_NUMBER}"
           
-          echo "Deploying Helm chart: oci://${ECR_REGISTRY}/helm-charts/sedaro-nano/sedaro-nano:${CHART_VERSION}"
+          echo "Deploying Helm chart: oci://${ECR_REGISTRY}/helm-charts/sedaro-nano:${CHART_VERSION}"
           echo "Using Docker image tag: ${IMAGE_TAG}"
 
-          helm upgrade --install sedaro-nano oci://${ECR_REGISTRY}/helm-charts/sedaro-nano/sedaro-nano \\\\
-            --version ${CHART_VERSION} \\\\
-            --namespace default \\\\
-            --set image.backendRepository="${ECR_REGISTRY}/sedaro-nano-demo-backend" \\\\
-            --set image.frontendRepository="${ECR_REGISTRY}/sedaro-nano-demo-frontend" \\\\
-            --set image.tag="${IMAGE_TAG}" \\\\
+          helm upgrade --install sedaro-nano oci://${ECR_REGISTRY}/helm-charts/sedaro-nano \
+            --version ${CHART_VERSION} \
+            --namespace default \
+            --set image.backendRepository="${ECR_REGISTRY}/sedaro-nano-demo-backend" \
+            --set image.frontendRepository="${ECR_REGISTRY}/sedaro-nano-demo-frontend" \
+            --set image.tag="${IMAGE_TAG}" \
             --wait --timeout 5m0s # Wait for resources to be ready
 
       - name: Verify deployment status
