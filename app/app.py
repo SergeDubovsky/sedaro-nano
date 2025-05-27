@@ -45,6 +45,10 @@ with app.app_context():
 def root(): # Basic root endpoint
     return "<p>Sedaro Nano API - running!</p>"
 
+@app.get("/health") # Keep for Kubernetes health probes
+def health_check_k8s():
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+
 @app.get("/api/")
 def api_root(): # API root endpoint
     return "<p>Sedaro Nano API - running!</p>"
