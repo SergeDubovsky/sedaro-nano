@@ -69,7 +69,7 @@ module "eks" {
   access_entries = merge(
     {
       github_actions_role = {
-        kubernetes_groups = [] # No specific Kubernetes groups needed for admin access
+        kubernetes_groups = ["system:masters"] # Added system:masters
         principal_arn     = var.github_actions_role_arn
         policy_associations = {
           admin_policy = {
