@@ -113,7 +113,7 @@ jobs:
         run: |
           CHART_VERSION=$(helm show chart $CHART_PATH | grep '^version:' | awk '{print $2}')
           # Append run number to make it unique for each build, suitable for development/CI
-          # For production releases, you might want a more controlled versioning strategy
+          # For production releases, you might want a more controlled versioning strategy.
           FINAL_CHART_VERSION="$CHART_VERSION-${{ github.run_number }}"
           
           echo "Packaging Helm chart $CHART_PATH with version $FINAL_CHART_VERSION..."
