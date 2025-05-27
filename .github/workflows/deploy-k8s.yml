@@ -7,6 +7,11 @@ on:
       - completed
     branches: [ main ]
   workflow_dispatch:  # Allow manual triggering
+    inputs:
+      chart_version:
+        description: 'Specific chart version to deploy (e.g., 0.1.0-55). Leave empty to use latest.'
+        required: false
+        type: string
 
 permissions:
   id-token: write   # Required for OIDC
@@ -56,15 +61,34 @@ jobs:
           # Use the chart version that was pushed by the CI workflow
           CHART_BASE_VERSION=$(helm show chart ./helm/sedaro-nano | grep '^version:' | awk '{print $2}')
           
-          # For workflow_run triggers, use the triggering workflow's run number
-          # For manual triggers, use this workflow's run number
+          # Determine chart version based on trigger type
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            # For workflow_run triggers, use the triggering workflow's run number
             TRIGGERING_RUN_NUMBER="${{ github.event.workflow_run.run_number }}"
             CHART_VERSION="${CHART_BASE_VERSION}-${TRIGGERING_RUN_NUMBER}"
             echo "Using triggering CI workflow run number: ${TRIGGERING_RUN_NUMBER}"
+          elif [ -n "${{ inputs.chart_version }}" ]; then
+            # For manual dispatch with specific version input
+            CHART_VERSION="${{ inputs.chart_version }}"
+            echo "Using specified chart version: ${CHART_VERSION}"
           else
-            CHART_VERSION="${CHART_BASE_VERSION}-${GITHUB_RUN_NUMBER}"
-            echo "Using deploy workflow run number: ${GITHUB_RUN_NUMBER}"
+            # For manual dispatch without version input, find the latest chart version
+            echo "Finding latest chart version in ECR..."
+            
+            # List all tags for the sedaro-nano chart and find the latest one with our base version
+            LATEST_TAG=$(aws ecr describe-images \
+              --repository-name helm-charts \
+              --region us-east-1 \
+              --query "imageDetails[?starts_with(imageTags[0], '${CHART_BASE_VERSION}-')].imageTags[0]" \
+              --output text | sort -V | tail -1)
+            
+            if [ -n "$LATEST_TAG" ] && [ "$LATEST_TAG" != "None" ]; then
+              CHART_VERSION="$LATEST_TAG"
+              echo "Found latest chart version: ${CHART_VERSION}"
+            else
+              echo "No existing chart versions found. Using current run number as fallback."
+              CHART_VERSION="${CHART_BASE_VERSION}-${GITHUB_RUN_NUMBER}"
+            fi
           fi
           
           echo "Deploying Helm chart: oci://${ECR_REGISTRY}/helm-charts/sedaro-nano:${CHART_VERSION}"
