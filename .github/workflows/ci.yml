@@ -81,7 +81,7 @@ jobs:
       - name: Package and Push Helm Chart to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          HELM_CHART_REPO_NAME: helm-charts/sedaro-nano # Or your chosen ECR repo name for charts
+          HELM_CHART_REPO_NAME: helm-charts # Or your chosen ECR repo name for charts
           CHART_PATH: ./helm/sedaro-nano
         run: |
           CHART_VERSION=$(helm show chart $CHART_PATH | grep '^version:' | awk '{print $2}')
