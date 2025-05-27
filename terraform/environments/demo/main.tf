@@ -106,8 +106,8 @@ module "eks_addons" {
 module "ecr_repositories" {
   source = "../../modules/ecr"
 
-  project_name            = var.project_name
-  environment             = var.environment
-  github_actions_role_arn = var.github_actions_role_arn
+  project_name               = var.project_name
+  environment                = var.environment
+  github_actions_role_arn    = var.github_actions_role_arn
   helm_chart_repository_name = "helm-charts/sedaro-nano" # Added this line
 }

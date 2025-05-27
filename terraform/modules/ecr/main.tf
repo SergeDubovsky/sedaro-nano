@@ -103,7 +103,7 @@ resource "aws_ecr_repository_policy" "repositories" {
 
 resource "aws_ecr_repository" "helm_chart_repository" {
   name                 = var.helm_chart_repository_name # "${var.project_name}-${var.environment}-helm-charts" # Alternative naming
-  image_tag_mutability = "MUTABLE" # Or "IMMUTABLE" if you prefer, OCI charts are versioned anyway
+  image_tag_mutability = "MUTABLE"                      # Or "IMMUTABLE" if you prefer, OCI charts are versioned anyway
 
   image_scanning_configuration {
     scan_on_push = true
@@ -130,9 +130,9 @@ resource "aws_ecr_lifecycle_policy" "helm_chart_repository" {
         rulePriority = 1,
         description  = "Keep last 20 chart versions",
         selection = {
-          tagStatus     = "any", # Helm charts use tags for versions
-          countType     = "imageCountMoreThan",
-          countNumber   = 20
+          tagStatus   = "any", # Helm charts use tags for versions
+          countType   = "imageCountMoreThan",
+          countNumber = 20
         },
         action = {
           type = "expire"
