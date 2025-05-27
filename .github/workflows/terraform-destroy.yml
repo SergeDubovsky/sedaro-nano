@@ -40,23 +40,67 @@ jobs:
 
       - name: Clean up ECR Images
         run: |
-          # List and delete ECR repositories to save costs
-          REPOSITORIES=$(aws ecr describe-repositories --query 'repositories[?starts_with(repositoryName, `sedaro-nano-demo`)].repositoryName' --output text 2>/dev/null || echo "")
-          if [ ! -z "$REPOSITORIES" ]; then
-            for repo in $REPOSITORIES; do
-              echo "Cleaning up ECR repository: $repo"
-              # Get all image IDs in the repository
-              IMAGE_IDS=$(aws ecr list-images --repository-name $repo --query 'imageIds[*]' --output json)
-              if [ "$IMAGE_IDS" != "[]" ] && [ "$IMAGE_IDS" != "" ]; then
-                echo "Deleting images from repository: $repo"
-                echo "$IMAGE_IDS" | aws ecr batch-delete-image --repository-name $repo --image-ids file:///dev/stdin || true
+          # List and delete all sedaro-nano related ECR repositories to prevent Terraform destroy errors
+          echo "Cleaning up ECR repositories..."
+          
+          # Define all possible repository names that might exist
+          POSSIBLE_REPOS=(
+            "sedaro-nano-demo-frontend"
+            "sedaro-nano-demo-backend"
+            "helm-charts/sedaro-nano"
+          )
+          
+          for repo in "${POSSIBLE_REPOS[@]}"; do
+            echo "Checking repository: $repo"
+            
+            # Check if repository exists
+            if aws ecr describe-repositories --repository-names "$repo" >/dev/null 2>&1; then
+              echo "Repository $repo exists, cleaning up images..."
+              
+              # Get all image digests and tags
+              IMAGES=$(aws ecr list-images --repository-name "$repo" --query 'imageIds' --output json 2>/dev/null)
+              
+              if [ "$IMAGES" != "[]" ] && [ "$IMAGES" != "null" ] && [ ! -z "$IMAGES" ]; then
+                echo "Found images in repository $repo:"
+                echo "$IMAGES" | jq -r '.[] | "  - Tag: \(.imageTag // "untagged"), Digest: \(.imageDigest)"'
+                
+                # Delete all images using batch-delete-image
+                echo "Deleting all images from repository: $repo"
+                echo "$IMAGES" > /tmp/images_to_delete.json
+                
+                if aws ecr batch-delete-image --repository-name "$repo" --image-ids file:///tmp/images_to_delete.json; then
+                  echo "Successfully deleted all images from $repo"
+                else
+                  echo "Batch delete failed for $repo, trying individual deletion..."
+                  # Fallback: delete images one by one by digest
+                  echo "$IMAGES" | jq -r '.[].imageDigest' | while read -r digest; do
+                    if [ ! -z "$digest" ] && [ "$digest" != "null" ]; then
+                      echo "Deleting image with digest: $digest"
+                      aws ecr batch-delete-image --repository-name "$repo" --image-ids imageDigest="$digest" || echo "Failed to delete image $digest"
+                    fi
+                  done
+                  
+                  # Also try deleting by tag if available
+                  echo "$IMAGES" | jq -r '.[] | select(.imageTag != null) | .imageTag' | while read -r tag; do
+                    if [ ! -z "$tag" ] && [ "$tag" != "null" ]; then
+                      echo "Deleting image with tag: $tag"
+                      aws ecr batch-delete-image --repository-name "$repo" --image-ids imageTag="$tag" || echo "Failed to delete image $tag"
+                    fi
+                  done
+                fi
+                
+                # Verify cleanup
+                REMAINING=$(aws ecr list-images --repository-name "$repo" --query 'length(imageIds)' --output text 2>/dev/null || echo "0")
+                echo "Remaining images in $repo: $REMAINING"
               else
                 echo "No images found in repository: $repo"
               fi
-            done
-          else
-            echo "No ECR repositories found to clean up"
-          fi
+            else
+              echo "Repository $repo does not exist or is not accessible"
+            fi
+          done
+          
+          echo "ECR cleanup completed for all repositories"
 
   destroy-demo:
     name: Destroy Demo Environment
