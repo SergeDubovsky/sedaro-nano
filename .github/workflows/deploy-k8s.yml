@@ -40,15 +40,40 @@ jobs:
         run: |
           aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }}
 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Prepare Kubernetes manifests with ECR URLs
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          # Replace ECR_REGISTRY placeholder in deployment files
+          sed "s|\${ECR_REGISTRY}|$ECR_REGISTRY|g" k8s/backend-deployment.yaml > /tmp/backend-deployment.yaml
+          sed "s|\${ECR_REGISTRY}|$ECR_REGISTRY|g" k8s/frontend-deployment.yaml > /tmp/frontend-deployment.yaml
+          
+          echo "Updated backend deployment:"
+          cat /tmp/backend-deployment.yaml | grep image:
+          echo "Updated frontend deployment:"
+          cat /tmp/frontend-deployment.yaml | grep image:
+
       - name: Deploy Kubernetes manifests
         run: |
           kubectl apply -f k8s/backend-service.yaml
-          kubectl apply -f k8s/backend-deployment.yaml
-          kubectl apply -f k8s/frontend-deployment.yaml
+          kubectl apply -f /tmp/backend-deployment.yaml
+          kubectl apply -f /tmp/frontend-deployment.yaml
           
       - name: Verify deployment status
         run: |
-          kubectl rollout status deployment/backend-deployment --timeout=300s
-          kubectl rollout status deployment/frontend-deployment --timeout=300s
-          kubectl get pods -l app=backend
-          kubectl get pods -l app=frontend
+          kubectl rollout status deployment/sedaro-nano-backend --timeout=300s
+          kubectl rollout status deployment/sedaro-nano-frontend --timeout=300s
+          kubectl get pods -l app=sedaro-nano
+          kubectl get services
+          
+      - name: Show deployment information
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Services:"
+          kubectl get services
+          echo "Pods:"
+          kubectl get pods

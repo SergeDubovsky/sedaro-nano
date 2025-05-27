@@ -64,3 +64,24 @@ output "cluster_autoscaler_enabled" {
   description = "Whether cluster autoscaler is enabled"
   value       = module.eks_addons.cluster_autoscaler_enabled
 }
+
+# ECR Repositories
+output "ecr_repository_urls" {
+  description = "URLs of the ECR repositories"
+  value       = module.ecr_repositories.repository_urls
+}
+
+output "ecr_app_repository_url" {
+  description = "URL of the app ECR repository"
+  value       = module.ecr_repositories.repository_urls["sedaro-nano-app"]
+}
+
+output "ecr_web_repository_url" {
+  description = "URL of the web ECR repository"
+  value       = module.ecr_repositories.repository_urls["sedaro-nano-web"]
+}
+
+output "ecr_registry_id" {
+  description = "ECR Registry ID"
+  value       = module.ecr_repositories.registry_id
+}

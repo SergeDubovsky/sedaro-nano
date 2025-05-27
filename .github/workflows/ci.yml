@@ -15,26 +15,25 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
     permissions:
+      id-token: write # Required for OIDC authentication with AWS
       contents: read
-      packages: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Convert repository owner to lowercase
-        id: lowercase
-        run: echo "repository_owner=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Generate version number
         id: version
@@ -45,37 +44,39 @@ jobs:
           echo "Generated version: $VERSION"
 
       - name: Build and push backend (app) image
-        id: build_app
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./app/Dockerfile
-          push: true
-          load: true
-          tags: |
-            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:latest
-            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:${{ steps.version.outputs.version }}
-            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:${{ github.sha }}
-
-      - name: Show backend (app) image size
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: sedaro-nano-demo-backend
+          IMAGE_TAG: ${{ steps.version.outputs.version }}
         run: |
-          echo "Size of ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:latest"
-          docker images ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-app:latest
+          # Build, tag, and push backend image
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./app/Dockerfile .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          echo "Backend image pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
       - name: Build and push frontend (web) image
-        id: build_web
-        uses: docker/build-push-action@v6
-        with:
-          context: ./web
-          file: ./web/Dockerfile
-          push: true
-          load: true
-          tags: |
-            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:latest
-            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:${{ steps.version.outputs.version }}
-            ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:${{ github.sha }}
-
-      - name: Show frontend (web) image size
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: sedaro-nano-demo-frontend
+          IMAGE_TAG: ${{ steps.version.outputs.version }}
         run: |
-          echo "Size of ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:latest"
-          docker images ghcr.io/${{ steps.lowercase.outputs.repository_owner }}/sedaro-nano-web:latest
+          # Build, tag, and push frontend image
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./web/Dockerfile ./web
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          echo "Frontend image pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Show image information
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          echo "Images pushed to ECR:"
+          echo "Backend: $ECR_REGISTRY/sedaro-nano-demo-backend:${{ steps.version.outputs.version }}"
+          echo "Frontend: $ECR_REGISTRY/sedaro-nano-demo-frontend:${{ steps.version.outputs.version }}"

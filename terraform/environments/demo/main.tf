@@ -101,3 +101,12 @@ module "eks_addons" {
   enable_metrics_server     = var.enable_metrics_server
   enable_cluster_autoscaler = var.enable_cluster_autoscaler
 }
+
+# ECR Repositories for Container Images
+module "ecr_repositories" {
+  source = "../../modules/ecr"
+
+  project_name            = var.project_name
+  environment             = var.environment
+  github_actions_role_arn = var.github_actions_role_arn
+}

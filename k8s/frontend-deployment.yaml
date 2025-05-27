@@ -24,10 +24,9 @@ spec:
         app: sedaro-nano
         tier: frontend
         env: demo # Added demo label
-    spec:
-      containers:
+    spec:      containers:
       - name: sedaro-nano-web
-        image: ghcr.io/sergedubovsky/sedaro-nano-web:latest
+        image: "${ECR_REGISTRY}/sedaro-nano-demo-frontend:latest"
         imagePullPolicy: Always # Added imagePullPolicy
         ports:
         - containerPort: 80

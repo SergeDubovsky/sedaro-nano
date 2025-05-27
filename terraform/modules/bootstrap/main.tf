@@ -188,6 +188,25 @@ resource "aws_iam_policy" "eks_management" {
   })
 }
 
+# Policy for GitHub Actions to manage ECR repositories
+resource "aws_iam_policy" "ecr_management" {
+  name        = "${var.project_name}-ecr-management"
+  description = "Policy granting permissions to create and manage ECR repositories for ${var.project_name}"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:*"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # Attach policies to the GitHub Actions role
 resource "aws_iam_role_policy_attachment" "terraform_state_access" {
   role       = aws_iam_role.github_actions.name
@@ -197,4 +216,9 @@ resource "aws_iam_role_policy_attachment" "terraform_state_access" {
 resource "aws_iam_role_policy_attachment" "eks_management" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.eks_management.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecr_management" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.ecr_management.arn
 }
