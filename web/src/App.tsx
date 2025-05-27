@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Link } from 'react-router-dom';
 import { Routes } from 'routes';
+import { CONFIG } from './config';
 
 // Input data from the simulation
 type AgentData = Record<string, Record<string, number>>;
@@ -28,7 +29,7 @@ const App = () => {
 
       try {
         // data should be populated from a POST call to the simulation server
-        const response = await fetch('http://localhost:8000/simulation');
+        const response = await fetch(`${CONFIG.API_BASE_URL}/simulation`);
         if (canceled) return;
         const data: DataPoint[] = await response.json();
         const updatedPositionData: PlottedFrame = {};
