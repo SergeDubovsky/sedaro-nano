@@ -38,29 +38,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
 
-      - name: Install and configure kubectl and Helm
-        run: |
-          # Install kubectl
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          
-          # Install Helm
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          
-          # Configure kubectl
-          aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }}
-
-      - name: Uninstall Helm Release
-        run: |
-          # Check if release exists and uninstall
-          if helm list --short | grep -q "^sedaro-nano$"; then
-            echo "Uninstalling Helm release: sedaro-nano"
-            helm uninstall sedaro-nano --wait
-          else
-            echo "Helm release 'sedaro-nano' not found, skipping"
-          fi
-
       - name: Clean up ECR Images
         run: |
           # List and delete ECR repositories to save costs
