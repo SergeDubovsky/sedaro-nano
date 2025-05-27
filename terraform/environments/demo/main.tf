@@ -109,5 +109,5 @@ module "ecr_repositories" {
   project_name               = var.project_name
   environment                = var.environment
   github_actions_role_arn    = var.github_actions_role_arn
-  helm_chart_repository_name = "helm-charts" # Use top-level repo for Helm charts
+  helm_chart_repository_name = "helm-charts/sedaro-nano" # Full path for OCI chart storage
 }
