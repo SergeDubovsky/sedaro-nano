@@ -68,8 +68,14 @@ jobs:
           if [ ! -z "$REPOSITORIES" ]; then
             for repo in $REPOSITORIES; do
               echo "Cleaning up ECR repository: $repo"
-              aws ecr list-images --repository-name $repo --query 'imageIds[*]' --output json | jq '.[] | select(.imageTag != null)' | \
-              aws ecr batch-delete-image --repository-name $repo --image-ids file:///dev/stdin || true
+              # Get all image IDs in the repository
+              IMAGE_IDS=$(aws ecr list-images --repository-name $repo --query 'imageIds[*]' --output json)
+              if [ "$IMAGE_IDS" != "[]" ] && [ "$IMAGE_IDS" != "" ]; then
+                echo "Deleting images from repository: $repo"
+                echo "$IMAGE_IDS" | aws ecr batch-delete-image --repository-name $repo --image-ids file:///dev/stdin || true
+              else
+                echo "No images found in repository: $repo"
+              fi
             done
           else
             echo "No ECR repositories found to clean up"
