@@ -4,11 +4,11 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'k8s/**'
+      - 'helm/**' # Added trigger for Helm chart changes
   pull_request:
     branches: [ main ]
     paths:
-      - 'k8s/**'
+      - 'helm/**' # Added trigger for Helm chart changes
   workflow_dispatch:  # Allow manual triggering
 
 permissions:
@@ -36,6 +36,12 @@ jobs:
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/kubectl
 
+      - name: Install Helm
+        run: |
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+
       - name: Configure kubectl for EKS
         run: |
           aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }}
@@ -44,36 +50,34 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Prepare Kubernetes manifests with ECR URLs
+      - name: Deploy Helm Chart
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # Replace ECR_REGISTRY placeholder in deployment files
-          sed "s|\${ECR_REGISTRY}|$ECR_REGISTRY|g" k8s/backend-deployment.yaml > /tmp/backend-deployment.yaml
-          sed "s|\${ECR_REGISTRY}|$ECR_REGISTRY|g" k8s/frontend-deployment.yaml > /tmp/frontend-deployment.yaml
-          
-          echo "Updated backend deployment:"
-          cat /tmp/backend-deployment.yaml | grep image:
-          echo "Updated frontend deployment:"
-          cat /tmp/frontend-deployment.yaml | grep image:
+          helm upgrade --install sedaro-nano ./helm/sedaro-nano \\
+            --namespace default \\
+            --set image.backendRepository="${ECR_REGISTRY}/sedaro-nano-demo-backend" \\
+            --set image.frontendRepository="${ECR_REGISTRY}/sedaro-nano-demo-frontend" \\
+            --set image.tag="latest" \\
+            --wait --timeout 5m0s # Wait for resources to be ready
 
-      - name: Deploy Kubernetes manifests
-        run: |
-          kubectl apply -f k8s/backend-service.yaml
-          kubectl apply -f /tmp/backend-deployment.yaml
-          kubectl apply -f /tmp/frontend-deployment.yaml
-          
       - name: Verify deployment status
         run: |
-          kubectl rollout status deployment/sedaro-nano-backend --timeout=300s
-          kubectl rollout status deployment/sedaro-nano-frontend --timeout=300s
-          kubectl get pods -l app=sedaro-nano
-          kubectl get services
+          echo "Verifying deployment status..."
+          kubectl rollout status deployment/sedaro-nano-backend --timeout=60s
+          kubectl rollout status deployment/sedaro-nano-frontend --timeout=60s
+          kubectl get pods -l app.kubernetes.io/instance=sedaro-nano
+          kubectl get services -l app.kubernetes.io/instance=sedaro-nano
+          kubectl get ingress -l app.kubernetes.io/instance=sedaro-nano
           
       - name: Show deployment information
         run: |
           echo "Deployment completed successfully!"
           echo "Services:"
-          kubectl get services
+          kubectl get services -l app.kubernetes.io/instance=sedaro-nano
           echo "Pods:"
-          kubectl get pods
+          kubectl get pods -l app.kubernetes.io/instance=sedaro-nano
+          echo "Ingress:"
+          kubectl get ingress -l app.kubernetes.io/instance=sedaro-nano
+          echo "ALB Address (may take a few minutes to provision):"
+          kubectl get ingress sedaro-nano -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'

@@ -9,6 +9,14 @@ variable "environment" {
 }
 
 variable "github_actions_role_arn" {
-  description = "The ARN of the IAM role assumed by GitHub Actions"
+  description = "ARN of the GitHub Actions IAM role that needs access to ECR"
   type        = string
+}
+
+variable "helm_chart_repository_name" {
+  description = "Name for the ECR repository to store Helm charts. Can include slashes for path-like names."
+  type        = string
+  default     = "helm-charts"
+  # If you want it to be project specific by default, you could use a local or pass it in fully formed.
+  # For example, in the root module you could set it to "helm-charts/${var.project_name}"
 }

@@ -73,10 +73,43 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
           echo "Frontend image pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-      - name: Show image information
+      - name: Install Helm
+        run: |
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+
+      - name: Package and Push Helm Chart to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          HELM_CHART_REPO_NAME: helm-charts/sedaro-nano # Or your chosen ECR repo name for charts
+          CHART_PATH: ./helm/sedaro-nano
+        run: |
+          CHART_VERSION=$(helm show chart $CHART_PATH | grep '^version:' | awk '{print $2}')
+          # Append run number to make it unique for each build, suitable for development/CI
+          # For production releases, you might want a more controlled versioning strategy
+          FINAL_CHART_VERSION="$CHART_VERSION-${{ github.run_number }}"
+          
+          echo "Packaging Helm chart $CHART_PATH with version $FINAL_CHART_VERSION..."
+          helm package $CHART_PATH --version $FINAL_CHART_VERSION -d ./helm_packaged
+          
+          CHART_PACKAGE_NAME="sedaro-nano-$FINAL_CHART_VERSION.tgz"
+          OCI_URI="oci://$ECR_REGISTRY/$HELM_CHART_REPO_NAME"
+          
+          echo "Pushing Helm chart $CHART_PACKAGE_NAME to $OCI_URI..."
+          helm push ./helm_packaged/$CHART_PACKAGE_NAME $OCI_URI
+          
+          echo "Helm chart pushed: $OCI_URI/sedaro-nano:$FINAL_CHART_VERSION"
+          # Save the chart version for later use if needed by other jobs/workflows
+          echo "chart_version=$FINAL_CHART_VERSION" >> $GITHUB_OUTPUT
+          echo "chart_oci_uri=$OCI_URI/sedaro-nano" >> $GITHUB_OUTPUT # Base OCI URI for the chart
+
+      - name: Show image and chart information
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           echo "Images pushed to ECR:"
           echo "Backend: $ECR_REGISTRY/sedaro-nano-demo-backend:${{ steps.version.outputs.version }}"
           echo "Frontend: $ECR_REGISTRY/sedaro-nano-demo-frontend:${{ steps.version.outputs.version }}"
+          echo "Helm Chart Version: ${{ steps.version.outputs.version }}"
+          echo "Helm Chart OCI URI: ${{ steps.version.outputs.chart_oci_uri }}"
