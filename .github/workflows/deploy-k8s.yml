@@ -55,7 +55,17 @@ jobs:
         run: |
           # Use the chart version that was pushed by the CI workflow
           CHART_BASE_VERSION=$(helm show chart ./helm/sedaro-nano | grep '^version:' | awk '{print $2}')
-          CHART_VERSION="${CHART_BASE_VERSION}-${GITHUB_RUN_NUMBER}"
+          
+          # For workflow_run triggers, use the triggering workflow's run number
+          # For manual triggers, use this workflow's run number
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            TRIGGERING_RUN_NUMBER="${{ github.event.workflow_run.run_number }}"
+            CHART_VERSION="${CHART_BASE_VERSION}-${TRIGGERING_RUN_NUMBER}"
+            echo "Using triggering CI workflow run number: ${TRIGGERING_RUN_NUMBER}"
+          else
+            CHART_VERSION="${CHART_BASE_VERSION}-${GITHUB_RUN_NUMBER}"
+            echo "Using deploy workflow run number: ${GITHUB_RUN_NUMBER}"
+          fi
           
           echo "Deploying Helm chart: oci://${ECR_REGISTRY}/helm-charts/sedaro-nano:${CHART_VERSION}"
           echo "Using Docker image tag: ${IMAGE_TAG}"
@@ -66,7 +76,7 @@ jobs:
             --set image.backendRepository="${ECR_REGISTRY}/sedaro-nano-demo-backend" \
             --set image.frontendRepository="${ECR_REGISTRY}/sedaro-nano-demo-frontend" \
             --set image.tag="${IMAGE_TAG}" \
-            --wait --timeout 5m0s # Wait for resources to be ready
+            --wait --timeout 5m0s
 
       - name: Verify deployment status
         run: |
