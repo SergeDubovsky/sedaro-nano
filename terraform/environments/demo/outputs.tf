@@ -72,13 +72,13 @@ output "ecr_repository_urls" {
 }
 
 output "ecr_app_repository_url" {
-  description = "URL of the app ECR repository"
-  value       = module.ecr_repositories.repository_urls["sedaro-nano-app"]
+  description = "The URL of the ECR repository for the application image"
+  value       = module.ecr_repositories.repository_urls["backend"]
 }
 
 output "ecr_web_repository_url" {
-  description = "URL of the web ECR repository"
-  value       = module.ecr_repositories.repository_urls["sedaro-nano-web"]
+  description = "The URL of the ECR repository for the web image"
+  value       = module.ecr_repositories.repository_urls["frontend"]
 }
 
 output "ecr_registry_id" {
