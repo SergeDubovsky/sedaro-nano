@@ -42,22 +42,26 @@ with app.app_context():
 
 
 @app.get("/")
-def root(): # Renamed from health to root
+def root(): # Basic root endpoint
     return "<p>Sedaro Nano API - running!</p>"
 
-@app.get("/health")
+@app.get("/api/")
+def api_root(): # API root endpoint
+    return "<p>Sedaro Nano API - running!</p>"
+
+@app.get("/api/health")
 def health_check():
     return {"status": "ok", "timestamp": datetime.now().isoformat()}
 
 
-@app.get("/simulation")
+@app.get("/api/simulation")
 def get_data():
     # Get most recent simulation from database
     simulation: Simulation = Simulation.query.order_by(Simulation.id.desc()).first()
     return simulation.data if simulation else []
 
 
-@app.post("/simulation")
+@app.post("/api/simulation")
 def simulate():
     # Get data from request in this form
     # init = {
