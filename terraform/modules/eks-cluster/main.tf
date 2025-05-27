@@ -64,13 +64,13 @@ module "eks" {
   vpc_id                         = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
   cluster_endpoint_public_access = true
+  authentication_mode            = "API_AND_CONFIG_MAP"
 
   # Allow the GitHub Actions role to access the cluster
   access_entries = merge(
     {
       github_actions_role = {
-        kubernetes_groups = ["system:masters"] # Added system:masters
-        principal_arn     = var.github_actions_role_arn
+        principal_arn = var.github_actions_role_arn
         policy_associations = {
           admin_policy = {
             policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
