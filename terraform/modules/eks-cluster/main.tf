@@ -141,7 +141,7 @@ module "eks" {
         Purpose        = "eks-worker-nodes"
         CostCenter     = var.environment
         LaunchTemplate = "${local.name}-node-template"
-      }) 
+      })
 
       # ================================
       # Security Configuration (IMDS)
