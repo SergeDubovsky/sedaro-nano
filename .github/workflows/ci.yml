@@ -34,6 +34,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Set up Node.js (for frontend build optimization)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
       - name: Generate version number
         id: version
         run: |
@@ -43,42 +58,54 @@ jobs:
           echo "Generated version: $VERSION"
 
       - name: Build and push backend (app) image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: sedaro-nano-demo-backend
-          IMAGE_TAG: ${{ steps.version.outputs.version }}
-        run: |
-          # Build, tag, and push backend image
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./app/Dockerfile .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
-          echo "Backend image pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./app/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/sedaro-nano-demo-backend:${{ steps.version.outputs.version }}
+            ${{ steps.login-ecr.outputs.registry }}/sedaro-nano-demo-backend:latest
+            ${{ steps.login-ecr.outputs.registry }}/sedaro-nano-demo-backend:${{ github.sha }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          platforms: linux/amd64
 
       - name: Build and push frontend (web) image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: sedaro-nano-demo-frontend
-          IMAGE_TAG: ${{ steps.version.outputs.version }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/sedaro-nano-demo-frontend:${{ steps.version.outputs.version }}
+            ${{ steps.login-ecr.outputs.registry }}/sedaro-nano-demo-frontend:latest
+            ${{ steps.login-ecr.outputs.registry }}/sedaro-nano-demo-frontend:${{ github.sha }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          platforms: linux/amd64
+
+      - name: Move cache
         run: |
-          # Build, tag, and push frontend image
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./web/Dockerfile ./web
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
-          echo "Frontend image pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Cache Helm binary
+        id: cache-helm
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/helm
+          key: ${{ runner.os }}-helm-v3.13.3
 
       - name: Install Helm
+        if: steps.cache-helm.outputs.cache-hit != 'true'
         run: |
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
           chmod 700 get_helm.sh
           ./get_helm.sh
 
       - name: Package and Push Helm Chart to ECR
+        id: helm
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           HELM_CHART_REPO_NAME: helm-charts # Or your chosen ECR repo name for charts
@@ -110,5 +137,5 @@ jobs:
           echo "Images pushed to ECR:"
           echo "Backend: $ECR_REGISTRY/sedaro-nano-demo-backend:${{ steps.version.outputs.version }}"
           echo "Frontend: $ECR_REGISTRY/sedaro-nano-demo-frontend:${{ steps.version.outputs.version }}"
-          echo "Helm Chart Version: ${{ steps.version.outputs.version }}"
-          echo "Helm Chart OCI URI: ${{ steps.version.outputs.chart_oci_uri }}"
+          echo "Helm Chart Version: ${{ steps.helm.outputs.chart_version }}"
+          echo "Helm Chart OCI URI: ${{ steps.helm.outputs.chart_oci_uri }}"

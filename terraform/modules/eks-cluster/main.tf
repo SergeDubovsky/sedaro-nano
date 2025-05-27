@@ -141,26 +141,7 @@ module "eks" {
         Purpose        = "eks-worker-nodes"
         CostCenter     = var.environment
         LaunchTemplate = "${local.name}-node-template"
-      }) # ================================
-      # Storage Configuration (EBS)
-      # ================================
-      # For demo environments, we can rely on EKS defaults (20GB gp2)
-      # For production, uncomment and customize the block_device_mappings below
-
-      # block_device_mappings = {
-      #   xvda = {
-      #     device_name = "/dev/xvda"
-      #     ebs = {
-      #       volume_size           = var.node_volume_size       # Configurable volume size
-      #       volume_type           = var.node_volume_type       # Configurable volume type
-      #       iops                  = var.node_volume_iops       # Configurable IOPS
-      #       throughput            = var.node_volume_throughput # Configurable throughput
-      #       encrypted             = true                       # Encryption at rest for security compliance
-      #       delete_on_termination = true                       # Clean up on node termination
-      #       kms_key_id            = null                       # Use default AWS managed key (aws/ebs)
-      #     }
-      #   }
-      # }
+      }) 
 
       # ================================
       # Security Configuration (IMDS)
