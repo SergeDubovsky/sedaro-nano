@@ -1,14 +1,11 @@
 name: Deploy Kubernetes Workloads
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI - Build and Push Docker Images"]
+    types:
+      - completed
     branches: [ main ]
-    paths:
-      - 'helm/**' # Added trigger for Helm chart changes
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'helm/**' # Added trigger for Helm chart changes
   workflow_dispatch:  # Allow manual triggering
 
 permissions:
@@ -19,6 +16,7 @@ jobs:
   deploy-workloads:
     name: Deploy Kubernetes Workloads
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     
     steps:
       - name: Checkout repository
@@ -41,6 +39,7 @@ jobs:
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
           chmod 700 get_helm.sh
           ./get_helm.sh
+
       - name: Configure kubectl for EKS
         run: |
           aws eks update-kubeconfig --name sedaro-nano-demo --region ${{ vars.AWS_REGION || 'us-east-1' }}
@@ -53,15 +52,8 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
-          AWS_REGION_TO_USE: ${{ vars.AWS_REGION || 'us-east-1' }}
         run: |
-          # Ensure AWS CLI is configured for the correct region for ECR login
-          aws configure set default.region ${AWS_REGION_TO_USE}
-          
-          # Login to ECR for Helm charts (OCI)
-          aws ecr get-login-password --region ${AWS_REGION_TO_USE} | helm registry login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}          
-          # Determine chart version (requires chart source to be checked out)
-          # This assumes the helm chart files are in ./helm/sedaro-nano relative to the repo root
+          # Use the chart version that was pushed by the CI workflow
           CHART_BASE_VERSION=$(helm show chart ./helm/sedaro-nano | grep '^version:' | awk '{print $2}')
           CHART_VERSION="${CHART_BASE_VERSION}-${GITHUB_RUN_NUMBER}"
           
