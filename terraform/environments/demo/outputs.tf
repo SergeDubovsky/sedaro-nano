@@ -85,3 +85,13 @@ output "ecr_registry_id" {
   description = "ECR Registry ID"
   value       = module.ecr_repositories.registry_id
 }
+
+output "helm_chart_repository_url" {
+  description = "URL of the ECR repository for Helm charts"
+  value       = module.ecr_repositories.helm_chart_repository_url
+}
+
+output "helm_chart_repository_arn" {
+  description = "ARN of the ECR repository for Helm charts"
+  value       = module.ecr_repositories.helm_chart_repository_arn
+}
