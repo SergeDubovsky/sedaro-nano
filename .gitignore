@@ -17,3 +17,4 @@
 # Environment-specific variable files (keep templates)
 terraform/environments/**/terraform.tfvars
 !terraform/environments/**/terraform.tfvars.example
+sedaro-nano-main

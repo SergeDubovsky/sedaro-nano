@@ -38,18 +38,42 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
 
-      - name: Install and configure kubectl
+      - name: Install and configure kubectl and Helm
         run: |
+          # Install kubectl
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
+          
+          # Install Helm
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          
+          # Configure kubectl
           aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME || 'sedaro-nano-demo' }} --region ${{ vars.AWS_REGION || 'us-east-1' }}
 
-      - name: Delete Kubernetes Manifests
+      - name: Uninstall Helm Release
         run: |
-          kubectl delete -f k8s/frontend-deployment.yaml --ignore-not-found=true
-          kubectl delete -f k8s/backend-deployment.yaml --ignore-not-found=true
-          kubectl delete -f k8s/backend-service.yaml --ignore-not-found=true
+          # Check if release exists and uninstall
+          if helm list --short | grep -q "^sedaro-nano$"; then
+            echo "Uninstalling Helm release: sedaro-nano"
+            helm uninstall sedaro-nano --wait
+          else
+            echo "Helm release 'sedaro-nano' not found, skipping"
+          fi
+
+      - name: Clean up ECR Images
+        run: |
+          # List and delete ECR repositories to save costs
+          REPOSITORIES=$(aws ecr describe-repositories --query 'repositories[?starts_with(repositoryName, `sedaro-nano-demo`)].repositoryName' --output text 2>/dev/null || echo "")
+          if [ ! -z "$REPOSITORIES" ]; then
+            for repo in $REPOSITORIES; do
+              echo "Cleaning up ECR repository: $repo"
+              aws ecr list-images --repository-name $repo --query 'imageIds[*]' --output json | jq '.[] | select(.imageTag != null)' | \
+              aws ecr batch-delete-image --repository-name $repo --image-ids file:///dev/stdin || true
+            done
+          else
+            echo "No ECR repositories found to clean up"
+          fi
 
   destroy-demo:
     name: Destroy Demo Environment
