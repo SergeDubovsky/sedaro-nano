@@ -1,7 +1,7 @@
 
 locals {
   repositories = ["backend", "frontend"]
-  
+
   common_tags = {
     Project     = var.project_name
     Environment = var.environment
@@ -11,7 +11,7 @@ locals {
 
 resource "aws_ecr_repository" "repositories" {
   for_each = toset(local.repositories)
-  
+
   name                 = "${var.project_name}-${var.environment}-${each.value}"
   image_tag_mutability = "MUTABLE"
 
@@ -30,7 +30,7 @@ resource "aws_ecr_repository" "repositories" {
 
 resource "aws_ecr_lifecycle_policy" "repositories" {
   for_each = aws_ecr_repository.repositories
-  
+
   repository = each.value.name
 
   policy = jsonencode({
@@ -67,7 +67,7 @@ resource "aws_ecr_lifecycle_policy" "repositories" {
 
 resource "aws_ecr_repository_policy" "repositories" {
   for_each = aws_ecr_repository.repositories
-  
+
   repository = each.value.name
 
   policy = jsonencode({
