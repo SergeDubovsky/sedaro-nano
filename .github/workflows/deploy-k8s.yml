@@ -41,12 +41,6 @@ jobs:
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
           chmod 700 get_helm.sh
           ./get_helm.sh
-
-      - name: Install yq
-        run: |
-          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
-          sudo chmod +x /usr/bin/yq
-
       - name: Configure kubectl for EKS
         run: |
           aws eks update-kubeconfig --name sedaro-nano-demo --region ${{ vars.AWS_REGION || 'us-east-1' }}
@@ -65,11 +59,10 @@ jobs:
           aws configure set default.region ${AWS_REGION_TO_USE}
           
           # Login to ECR for Helm charts (OCI)
-          aws ecr get-login-password --region ${AWS_REGION_TO_USE} | helm registry login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-
+          aws ecr get-login-password --region ${AWS_REGION_TO_USE} | helm registry login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}          
           # Determine chart version (requires chart source to be checked out)
           # This assumes the helm chart files are in ./helm/sedaro-nano relative to the repo root
-          CHART_BASE_VERSION=$(helm show chart ./helm/sedaro-nano | yq '.version')
+          CHART_BASE_VERSION=$(helm show chart ./helm/sedaro-nano | grep '^version:' | awk '{print $2}')
           CHART_VERSION="${CHART_BASE_VERSION}-${GITHUB_RUN_NUMBER}"
           
           echo "Deploying Helm chart: oci://${ECR_REGISTRY}/helm-charts/sedaro-nano:${CHART_VERSION}"
