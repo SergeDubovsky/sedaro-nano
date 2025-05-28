@@ -95,3 +95,24 @@ output "helm_chart_repository_arn" {
   description = "ARN of the ECR repository for Helm charts"
   value       = module.ecr_repositories.helm_chart_repository_arn
 }
+
+# Certificate Outputs
+output "certificate_arn" {
+  description = "ARN of the validated ACM certificate"
+  value       = module.acm_certificate.certificate_arn
+}
+
+output "certificate_domain" {
+  description = "Domain name of the certificate"
+  value       = module.acm_certificate.certificate_domain
+}
+
+output "route53_zone_id" {
+  description = "Route53 hosted zone ID"
+  value       = module.acm_certificate.route53_zone_id
+}
+
+output "certificate_status" {
+  description = "Status of the certificate"
+  value       = module.acm_certificate.certificate_status
+}

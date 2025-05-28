@@ -36,6 +36,20 @@ provider "aws" {
   }
 }
 
+# US-East-1 provider for ACM certificates (required for ALB)
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+
+  default_tags {
+    tags = {
+      Project     = var.project_name
+      Environment = var.environment
+      ManagedBy   = "terraform"
+    }
+  }
+}
+
 # Data source to get EKS cluster auth token (needed at runtime)
 data "aws_eks_cluster_auth" "cluster" {
   name = module.eks_cluster.cluster_name
@@ -108,4 +122,23 @@ module "ecr_repositories" {
   environment                = var.environment
   github_actions_role_arn    = var.github_actions_role_arn
   helm_chart_repository_name = "helm-charts/sedaro-nano" # Full path for OCI chart storage
+}
+
+################################################################################
+# ACM Certificate Module (for custom domain support)
+################################################################################
+
+module "acm_certificate" {
+  source = "../../modules/acm-certificate"
+
+  enable_custom_domain = var.enable_custom_domain
+  domain_name          = var.domain_name
+  host_name            = var.host_name
+  environment          = var.environment
+  project_name         = var.project_name
+  include_wildcard     = var.include_wildcard
+
+  providers = {
+    aws.us_east_1 = aws.us_east_1
+  }
 }

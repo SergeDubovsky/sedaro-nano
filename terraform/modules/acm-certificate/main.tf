@@ -19,11 +19,11 @@ data "aws_route53_zone" "domain" {
 # Request ACM certificate for the domain
 resource "aws_acm_certificate" "domain_cert" {
   count = var.enable_custom_domain ? 1 : 0
-  
+
   domain_name               = "${var.host_name}.${var.domain_name}"
   subject_alternative_names = var.include_wildcard ? ["*.${var.domain_name}"] : []
   validation_method         = "DNS"
-  
+
   # Certificate should be created in us-east-1 for ALB usage
   provider = aws.us_east_1
 
@@ -60,10 +60,10 @@ resource "aws_route53_record" "cert_validation" {
 # Wait for certificate validation to complete
 resource "aws_acm_certificate_validation" "domain_cert" {
   count = var.enable_custom_domain ? 1 : 0
-  
+
   certificate_arn         = aws_acm_certificate.domain_cert[0].arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
-  
+
   provider = aws.us_east_1
 
   timeouts {

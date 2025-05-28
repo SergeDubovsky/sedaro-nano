@@ -104,3 +104,31 @@ variable "graviton_ami_type" {
   type        = string
   default     = "AL2023_ARM_64_STANDARD"
 }
+
+# ================================
+# Custom Domain Configuration
+# ================================
+
+variable "enable_custom_domain" {
+  description = "Enable custom domain and certificate provisioning"
+  type        = bool
+  default     = false
+}
+
+variable "domain_name" {
+  description = "The domain name (e.g., k8sdemo.click)"
+  type        = string
+  default     = ""
+}
+
+variable "host_name" {
+  description = "The hostname prefix (e.g., sedaro)"
+  type        = string
+  default     = ""
+}
+
+variable "include_wildcard" {
+  description = "Include wildcard certificate for subdomains"
+  type        = bool
+  default     = false
+}
