@@ -24,31 +24,6 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-# Node Configuration
-variable "node_instance_types" {
-  description = "EC2 instance types for EKS nodes"
-  type        = list(string)
-  default     = ["t3.small"] # Cost-optimized for demo
-}
-
-variable "node_desired_size" {
-  description = "Desired number of nodes"
-  type        = number
-  default     = 1 # Minimal for demo
-}
-
-variable "node_max_size" {
-  description = "Maximum number of nodes"
-  type        = number
-  default     = 2
-}
-
-variable "node_min_size" {
-  description = "Minimum number of nodes"
-  type        = number
-  default     = 1
-}
-
 # Access Configuration
 variable "github_actions_role_arn" {
   description = "The ARN of the IAM role assumed by GitHub Actions for EKS access"
@@ -75,27 +50,13 @@ variable "enable_cluster_autoscaler" {
 }
 
 # ================================
-# Launch Template Configuration (Simplified for Demo)
+# Launch Template Configuration (Graviton-only)
 # ================================
-# Note: Volume configuration variables removed for demo simplicity
-# EKS will use defaults: 20GB gp2 root volume
 
 variable "enable_detailed_monitoring" {
   description = "Enable detailed CloudWatch monitoring for worker nodes"
   type        = bool
   default     = true
-}
-
-variable "node_ami_type" {
-  description = "Type of Amazon Machine Image (AMI) for worker nodes. AL2023 recommended (AL2 deprecated Nov 2025)"
-  type        = string
-  default     = "AL2023_x86_64_STANDARD" # Future-proof: AL2 deprecated after Nov 26, 2025
-}
-
-variable "node_capacity_type" {
-  description = "Type of capacity associated with the EKS Node Group. Valid values: ON_DEMAND, SPOT"
-  type        = string
-  default     = "SPOT"
 }
 
 variable "node_update_max_unavailable_percentage" {
@@ -105,11 +66,11 @@ variable "node_update_max_unavailable_percentage" {
 }
 
 # ================================
-# Graviton (ARM64) Node Configuration
+# Graviton (ARM64) Node Configuration - Primary Node Group
 # ================================
 
 variable "graviton_instance_types" {
-  description = "EC2 instance types for Graviton (ARM64) EKS nodes"
+  description = "EC2 instance types for Graviton (ARM64) EKS nodes - primary and only node group"
   type        = list(string)
   default     = ["m6g.medium", "m6g.large"] # Graviton3 instances for cost efficiency
 }
@@ -129,7 +90,7 @@ variable "graviton_max_size" {
 variable "graviton_min_size" {
   description = "Minimum number of Graviton nodes"
   type        = number
-  default     = 0 # Can scale to zero when not needed
+  default     = 1 # Must be at least 1 since this is the only node group
 }
 
 variable "graviton_capacity_type" {
@@ -139,13 +100,7 @@ variable "graviton_capacity_type" {
 }
 
 variable "graviton_ami_type" {
-  description = "AMI type for Graviton nodes"
+  description = "AMI type for Graviton nodes - primary and only node group"
   type        = string
   default     = "AL2023_ARM_64_STANDARD"
-}
-
-variable "graviton_taint_arm_workloads" {
-  description = "Whether to taint Graviton nodes for ARM64-only workloads"
-  type        = bool
-  default     = false # Allow mixed scheduling for demo
 }

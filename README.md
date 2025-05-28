@@ -21,7 +21,7 @@ This submission demonstrates a complete transformation of the provided Sedaro Na
 - ✅ **No Infrastructure** → **Modular Terraform IaC**
 - ✅ **Basic Visualization** → **Enhanced 3D Interactive Plots**
 - ✅ **Development-Only** → **Production Monitoring & Security**
-- ✅ **Single Architecture** → **Multi-Arch Support (AMD64 + ARM64 Graviton)**
+- ✅ **Single Architecture** → **ARM64 Graviton-Only for Maximum Cost Efficiency**
 
 ## 📊 Architecture Transformation
 
@@ -165,10 +165,12 @@ helm/sedaro-nano/
 - **Load Balancing**: AWS ALB with health checks
 
 ### **Cost Optimization**
-- **SPOT Instances**: Cost-effective compute resources
-- **Right-sized Resources**: t3.small instances for cost efficiency
+- **ARM64 Graviton Processors**: Up to 40% better price/performance vs x86 instances
+- **SPOT Instances**: Up to 90% cost savings vs On-Demand pricing
+- **Graviton-Only Architecture**: Single ARM64 node group for maximum efficiency
+- **Right-sized Resources**: m6g.medium/large Graviton3 instances
 - **Single NAT Gateway**: Reduced networking costs
-- **Efficient Storage**: GP3 EBS volumes with optimized IOPS
+- **Efficient Storage**: Default EKS storage with cost optimization
 
 ### **Performance Enhancements**
 - **Container Optimization**: Multi-stage Docker builds
