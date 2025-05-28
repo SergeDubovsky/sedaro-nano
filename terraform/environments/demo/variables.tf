@@ -84,7 +84,7 @@ variable "node_update_max_unavailable_percentage" {
 variable "graviton_instance_types" {
   description = "EC2 instance types for Graviton (ARM64) EKS nodes - primary and only node group"
   type        = list(string)
-  default     = ["m6g.large", "m6g.xlarge"] # Larger Graviton3 instances for higher pod density
+  default     = ["m6g.medium", "m6g.large"] # Cost-effective Graviton3 instances with prefix delegation support
 }
 
 variable "graviton_desired_size" {

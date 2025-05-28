@@ -32,17 +32,21 @@ The low pod limit is due to AWS VPC CNI default configuration:
 - `terraform/modules/eks-addons/main.tf` - Added CNI configuration
 - `terraform/environments/demo/variables.tf` - Added configuration variables
 
-### 2. Larger Instance Types
+### 2. Optimized Instance Types
 
-**Current**: `["m6g.medium", "m6g.large"]`
+**Previous**: `["m6g.medium", "m6g.large"]` (limited by VPC CNI)
 
-**Updated**: `["m6g.large", "m6g.xlarge"]`
+**Updated**: `["m6g.medium", "m6g.large"]` (with prefix delegation)
 
-**Pod Limits**:
+**Pod Limits with Prefix Delegation**:
 
-- **m6g.medium**: 8 → 30 pods (standard) / 30 pods (prefix mode)
-- **m6g.large**: 8 → 27 pods (standard) / 110 pods (prefix mode)
-- **m6g.xlarge**: 58 pods (standard) / 234 pods (prefix mode)
+- **m6g.medium**: 8 → **30 pods** (sufficient for 9 pods + growth)
+- **m6g.large**: 8 → **110 pods** (backup option for scaling)
+
+**Cost Efficiency**:
+- **For 9 pods**: m6g.medium is optimal (~$28/month vs $56/month for m6g.large)
+- **Growth headroom**: 30 pods capacity provides 3x current usage
+- **Fallback scaling**: m6g.large available if workload expands significantly
 
 ## Manual Configuration (Immediate Fix)
 
@@ -191,11 +195,18 @@ kubectl logs daemonset/aws-node -n kube-system
 
 ## Cost Impact
 
-### Instance Cost Optimization
+### Instance Cost Optimization for 9 Pods
 
-- **Before**: Multiple small nodes (higher overhead)
-- **After**: Fewer, larger nodes with higher pod density
-- **Savings**: 10-20% compute cost reduction through better utilization
+- **Optimal Choice**: m6g.medium with prefix delegation
+  - **Cost**: ~$28/month per node
+  - **Capacity**: 30 pods (330% current usage headroom)
+  - **Efficiency**: Perfect fit for current workload
+
+- **Before Optimization**: m6g.large limited to 8 pods
+  - **Cost**: ~$56/month for insufficient capacity
+  - **Problem**: Couldn't run all 9 pods on single node
+
+- **Cost Savings**: 50% reduction while gaining 275% more capacity
 
 ### Network Cost
 
