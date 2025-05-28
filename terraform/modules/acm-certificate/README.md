@@ -62,9 +62,13 @@ module "acm_certificate" {
 
 The module automatically:
 1. Creates an ACM certificate request
-2. Adds DNS validation records to Route53
-3. Waits for validation to complete (up to 10 minutes)
-4. Returns the validated certificate ARN
+2. Creates a Route53 record for DNS validation
+3. Waits for certificate validation
+
+### Tags
+
+- `Name`: `{project_name}-{environment}-cert`
+- `Environment`: `{environment}`
 
 ## Integration with GitHub Actions
 

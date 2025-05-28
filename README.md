@@ -26,12 +26,14 @@ This submission demonstrates a complete transformation of the provided Sedaro Na
 ## 📊 Architecture Transformation
 
 ### Before: Simple Local Setup
-```
+
+```text
 Docker Compose → Flask + React → SQLite
 ```
 
 ### After: Enterprise Cloud Architecture
-```
+
+```text
 GitHub Actions → ECR → EKS → ALB → Production Apps
 ```
 
@@ -141,18 +143,21 @@ helm/sedaro-nano/
 ## 🛠 Technology Stack Added
 
 ### **Cloud Infrastructure**
+
 - **AWS EKS**: Managed Kubernetes service
 - **AWS ECR**: Container registry with vulnerability scanning
 - **AWS ALB**: Application load balancer
 - **AWS CloudWatch**: Monitoring and logging
 
 ### **DevOps Tools**
+
 - **Terraform**: Infrastructure as Code
 - **GitHub Actions**: CI/CD automation
 - **Helm**: Kubernetes package management
 - **Docker**: Multi-stage container builds
 
 ### **Enhanced Frontend**
+
 - **Plotly.js**: Advanced 3D visualization library
 - **Nginx**: Production web server
 - **Optimized Builds**: Vite production optimization
@@ -160,11 +165,13 @@ helm/sedaro-nano/
 ## 📈 Performance & Scalability Improvements
 
 ### **Auto-scaling Configuration**
+
 - **Horizontal Pod Autoscaler**: Automatic scaling based on CPU/memory
 - **Node Auto-scaling**: EKS managed node group scaling
 - **Load Balancing**: AWS ALB with health checks
 
 ### **Cost Optimization**
+
 - **ARM64 Graviton Processors**: Up to 40% better price/performance vs x86 instances
 - **SPOT Instances**: Up to 90% cost savings vs On-Demand pricing
 - **Graviton-Only Architecture**: Single ARM64 node group for maximum efficiency
@@ -173,6 +180,7 @@ helm/sedaro-nano/
 - **Efficient Storage**: Default EKS storage with cost optimization
 
 ### **Performance Enhancements**
+
 - **Container Optimization**: Multi-stage Docker builds
 - **Network Optimization**: Enhanced TCP buffer settings
 - **CDN Ready**: Static asset optimization
@@ -181,6 +189,7 @@ helm/sedaro-nano/
 ## 🔧 Development & Deployment Workflow
 
 ### **Local Development**
+
 ```bash
 # Original: Basic docker-compose
 docker-compose up
@@ -190,6 +199,7 @@ docker compose up --build
 ```
 
 ### **Cloud Deployment**
+
 ```bash
 # Infrastructure deployment
 cd terraform/environments/demo
@@ -200,27 +210,29 @@ git push origin main
 ```
 
 ### **Production Access**
+
 ```bash
 # Application URL (auto-provisioned)
 kubectl get service
 # Access via AWS Load Balancer URL
 ```
 
-## 🎯 Key Value Delivered
-
 ### **Enterprise Readiness**
+
 - **Production Infrastructure**: From local-only to cloud-native
 - **Automated Operations**: Zero-touch deployment pipeline
 - **Security Compliance**: Multiple security layers implemented
 - **Cost Efficiency**: Optimized resource allocation
 
 ### **Scalability & Reliability**
+
 - **High Availability**: Multi-AZ deployment
 - **Auto-scaling**: Horizontal and vertical scaling
 - **Zero Downtime**: Rolling deployments
 - **Disaster Recovery**: Infrastructure as Code enables quick recovery
 
 ### **Operational Excellence**
+
 - **Monitoring**: Comprehensive observability
 - **Automation**: Fully automated CI/CD
 - **Documentation**: Infrastructure as Code serves as documentation
@@ -229,11 +241,13 @@ kubectl get service
 ## 🚀 Running the Solution
 
 ### **Prerequisites**
+
 - AWS CLI configured
 - Docker installed
 - kubectl and Helm
 
 ### **Quick Start**
+
 ```bash
 # Deploy infrastructure
 cd terraform/environments/demo
@@ -244,6 +258,7 @@ kubectl get service aws-load-balancer-webhook-service
 ```
 
 ### **Local Development**
+
 ```bash
 # Start all services
 docker compose up --build
