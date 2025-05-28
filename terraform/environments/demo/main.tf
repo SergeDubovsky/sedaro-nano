@@ -110,9 +110,9 @@ module "eks_addons" {
   aws_load_balancer_controller_role_arn = module.eks_cluster.aws_load_balancer_controller_role_arn
 
   # Addon configuration
-  enable_metrics_server               = var.enable_metrics_server
-  enable_cluster_autoscaler           = var.enable_cluster_autoscaler
-  enable_vpc_cni_prefix_delegation    = var.enable_vpc_cni_prefix_delegation
+  enable_metrics_server            = var.enable_metrics_server
+  enable_cluster_autoscaler        = var.enable_cluster_autoscaler
+  enable_vpc_cni_prefix_delegation = var.enable_vpc_cni_prefix_delegation
 }
 
 # ECR Repositories for Container Images

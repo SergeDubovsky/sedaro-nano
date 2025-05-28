@@ -236,12 +236,12 @@ EOF
 ################################################################################
 
 resource "aws_eks_addon" "vpc_cni" {
-  cluster_name             = module.eks.cluster_name
-  addon_name               = "vpc-cni"
-  addon_version            = "v1.19.0-eksbuild.1" # Latest version that supports prefix delegation
+  cluster_name                = module.eks.cluster_name
+  addon_name                  = "vpc-cni"
+  addon_version               = "v1.19.0-eksbuild.1" # Latest version that supports prefix delegation
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
-  service_account_role_arn = aws_iam_role.vpc_cni_role.arn
+  service_account_role_arn    = aws_iam_role.vpc_cni_role.arn
 
   configuration_values = jsonencode({
     enableNetworkPolicy = "false"
