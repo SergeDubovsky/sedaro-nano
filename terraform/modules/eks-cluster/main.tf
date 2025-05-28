@@ -185,9 +185,7 @@ EOF
       # ================================
       update_config = {
         max_unavailable_percentage = var.node_update_max_unavailable_percentage # Configurable update strategy
-      }
-
-      # ================================
+      }                                                                         # ================================
       # Kubernetes Configuration
       # ================================
       # Node labels for workload scheduling
@@ -198,11 +196,7 @@ EOF
         Project     = var.project_name
         ManagedBy   = "terraform"
 
-        # EKS-specific labels
-        "node.kubernetes.io/instance-type" = join(",", var.node_instance_types)
-        "node.kubernetes.io/capacity-type" = lower(var.node_capacity_type)
-
-        # Custom application labels
+        # Custom application labels (removed reserved prefixes)
         "sedaro.io/workload-type"  = "general"
         "sedaro.io/cost-optimized" = var.node_capacity_type == "SPOT" ? "true" : "false"
       }, local.tags) # No taints for main node group (accepts all workloads)
@@ -300,9 +294,7 @@ EOF
       # ================================
       update_config = {
         max_unavailable_percentage = var.node_update_max_unavailable_percentage
-      }
-
-      # ================================
+      } # ================================
       # Kubernetes Configuration
       # ================================
       labels = merge({
@@ -312,12 +304,7 @@ EOF
         Project     = var.project_name
         ManagedBy   = "terraform"
 
-        # Architecture-specific labels
-        "node.kubernetes.io/instance-type" = join(",", var.graviton_instance_types)
-        "node.kubernetes.io/capacity-type" = lower(var.graviton_capacity_type)
-        "kubernetes.io/arch"               = "arm64"
-
-        # Custom application labels
+        # Custom application labels (removed reserved prefixes)
         "sedaro.io/workload-type"  = "general"
         "sedaro.io/architecture"   = "arm64"
         "sedaro.io/cost-optimized" = "true"
