@@ -142,9 +142,29 @@ The Terraform changes have been prepared and committed. To deploy the optimizati
 
 ⚠️ **Important**: Do NOT run Terraform locally as it will conflict with the GitHub Actions managed state.
 
+### Recent Fixes Applied:
+- ✅ **VPC CNI Addon Version**: Updated to `v1.19.5-eksbuild.3` (compatible with EKS 1.32)
+- ✅ **ConfigMap Conflict**: Removed problematic ConfigMap creation, using DaemonSet patching instead
+- ✅ **Validation Script**: Added `scripts/validate-pod-density.ps1` for post-deployment verification
+
 ## Monitoring and Validation
 
-### Check Pod Density
+### Automated Validation Script
+
+Use the provided validation script for comprehensive pod density checking:
+
+```powershell
+# Run the automated validation script
+.\scripts\validate-pod-density.ps1
+```
+
+This script will:
+- Check node pod capacities
+- Verify VPC CNI prefix delegation settings
+- Show current pod allocation
+- Provide node cycling guidance if needed
+
+### Manual Validation Steps
 
 ```powershell
 # View current pod allocation
