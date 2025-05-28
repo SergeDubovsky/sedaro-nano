@@ -49,7 +49,8 @@ spec:
               path: /health
               port: http
             initialDelaySeconds: 5
-            periodSeconds: 10          resources:
+            periodSeconds: 10
+          resources:
             {{- if .Values.backend.resources }}
             {{- toYaml .Values.backend.resources | nindent 12 }}
             {{- else }}

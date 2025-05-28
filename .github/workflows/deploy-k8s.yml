@@ -57,6 +57,8 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
+          DOMAIN: ${{ vars.DOMAIN }}
+          HOST: ${{ vars.HOST }}
         run: |
           CHART_BASE_VERSION=$(helm show chart ./helm/sedaro-nano | grep '^version:' | awk '{print $2}')
           
@@ -81,14 +83,54 @@ jobs:
           
           echo "Deploying chart version: ${CHART_VERSION}"
           
-          helm upgrade --install sedaro-nano oci://${ECR_REGISTRY}/helm-charts/sedaro-nano \
+          # Base Helm command
+          HELM_CMD="helm upgrade --install sedaro-nano oci://${ECR_REGISTRY}/helm-charts/sedaro-nano \
             --version ${CHART_VERSION} \
             --namespace sedaro-nano \
             --create-namespace \
-            --set image.backendRepository="${ECR_REGISTRY}/sedaro-nano-demo-backend" \
-            --set image.frontendRepository="${ECR_REGISTRY}/sedaro-nano-demo-frontend" \
-            --set image.tag="${IMAGE_TAG}" \
-            --wait --timeout 10m
+            --set image.backendRepository=\"${ECR_REGISTRY}/sedaro-nano-demo-backend\" \
+            --set image.frontendRepository=\"${ECR_REGISTRY}/sedaro-nano-demo-frontend\" \
+            --set image.tag=\"${IMAGE_TAG}\""
+          
+          # Configure domain if both DOMAIN and HOST variables are set
+          if [ -n "$DOMAIN" ] && [ -n "$HOST" ]; then
+            FULL_DOMAIN="${HOST}.${DOMAIN}"
+            echo "Configuring custom domain: ${FULL_DOMAIN}"
+            
+            # Enable domain configuration
+            HELM_CMD="${HELM_CMD} \
+              --set domain.enabled=true \
+              --set domain.name=\"${DOMAIN}\" \
+              --set domain.host=\"${HOST}\" \
+              --set domain.fullName=\"${FULL_DOMAIN}\" \
+              --set tls.enabled=true"
+            
+            # Try to find existing ACM certificate for the domain
+            CERT_ARN=$(aws acm list-certificates \
+              --region us-east-1 \
+              --query "CertificateSummaryList[?DomainName=='${FULL_DOMAIN}' || contains(SubjectAlternativeNameSummary, '${FULL_DOMAIN}') || DomainName=='*.${DOMAIN}'].CertificateArn" \
+              --output text | head -1)
+            
+            if [ -n "$CERT_ARN" ] && [ "$CERT_ARN" != "None" ]; then
+              echo "Found ACM certificate: ${CERT_ARN}"
+              HELM_CMD="${HELM_CMD} --set tls.certificate.arn=\"${CERT_ARN}\""
+            else
+              echo "No ACM certificate found for ${FULL_DOMAIN}"
+              echo "Consider creating one manually or using cert-manager"
+              # Disable TLS if no certificate is available
+              HELM_CMD="${HELM_CMD} --set tls.enabled=false"
+            fi
+          else
+            echo "Domain configuration disabled - DOMAIN and/or HOST variables not set"
+            echo "Current values: DOMAIN='$DOMAIN', HOST='$HOST'"
+          fi
+          
+          # Add common deployment flags
+          HELM_CMD="${HELM_CMD} --wait --timeout 10m"
+          
+          # Execute the Helm command
+          echo "Executing: ${HELM_CMD}"
+          eval "${HELM_CMD}"
 
       - name: Verify deployment status
         run: |

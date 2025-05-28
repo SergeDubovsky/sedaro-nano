@@ -1,0 +1,15 @@
+{{- if and .Values.domain.enabled .Values.tls.enabled .Values.tls.certificate.useCertManager -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "sedaro-nano.fullname" . }}-tls
+  labels:
+    {{- include "sedaro-nano.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "sedaro-nano.fullname" . }}-tls
+  issuerRef:
+    name: {{ .Values.tls.certificate.issuer }}
+    kind: ClusterIssuer
+  dnsNames:
+    - {{ .Values.domain.fullName }}
+{{- end }}

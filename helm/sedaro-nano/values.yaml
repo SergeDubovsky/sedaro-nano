@@ -51,9 +51,6 @@ ingress:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
-    # alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
-    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:region:account-id:certificate/certificate-id # Replace with your ACM ARN
   hosts:
     - paths:
         - path: /api/
@@ -71,9 +68,48 @@ ingress:
               port:
                 number: 80
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+
+# Domain configuration - set via GitHub repository variables
+domain:
+  # Enable custom domain support (set via DOMAIN repo variable)
+  enabled: false
+  
+  # Primary domain name (e.g., "example.com")
+  name: ""
+  
+  # Host/subdomain (e.g., "sedaro" for "sedaro.example.com")
+  host: ""
+  
+  # Full domain name (computed from host + domain)
+  # Will be "sedaro.example.com" if host="sedaro" and name="example.com"
+  fullName: ""
+
+# TLS/SSL Configuration
+tls:
+  # Enable HTTPS/TLS (automatically enabled when domain is configured)
+  enabled: false
+  
+  # SSL certificate configuration
+  certificate:
+    # Use AWS Certificate Manager (ACM)
+    useACM: true
+    
+    # ACM certificate ARN (auto-discovered or manually specified)
+    arn: ""
+    
+    # Alternative: Use cert-manager with Let's Encrypt
+    useCertManager: false
+    
+    # Issuer for cert-manager (if not using ACM)
+    issuer: "letsencrypt-prod"
+  
+  # SSL redirect configuration
+  redirect:
+    # Automatically redirect HTTP to HTTPS
+    enabled: true
+    
+    # HTTP status code for redirect (301 or 302)
+    statusCode: "HTTP_301"
 
 resources:
   backend:

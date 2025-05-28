@@ -37,7 +37,8 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.service.frontend.port }}
-              protocol: TCP          # Add liveness/readiness probes if your frontend has health endpoints
+              protocol: TCP
+          # Add liveness/readiness probes if your frontend has health endpoints
           resources:
             {{- if .Values.frontend.resources }}
             {{- toYaml .Values.frontend.resources | nindent 12 }}
