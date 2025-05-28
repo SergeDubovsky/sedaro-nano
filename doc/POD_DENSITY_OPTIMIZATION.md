@@ -144,8 +144,10 @@ The Terraform changes have been prepared and committed. To deploy the optimizati
 
 ### Recent Fixes Applied:
 - ✅ **VPC CNI Addon Version**: Updated to `v1.19.5-eksbuild.3` (compatible with EKS 1.32)
-- ✅ **ConfigMap Conflict**: Removed problematic ConfigMap creation, using DaemonSet patching instead
+- ✅ **ConfigMap Conflict**: Removed problematic ConfigMap creation, using EKS addon configuration instead
+- ✅ **Local-exec Issue**: Removed kubectl local-exec commands that failed in GitHub Actions
 - ✅ **Validation Script**: Added `scripts/validate-pod-density.ps1` for post-deployment verification
+- ✅ **Conditional Configuration**: Made VPC CNI addon conditional based on `enable_vpc_cni_prefix_delegation` variable
 
 ## Monitoring and Validation
 

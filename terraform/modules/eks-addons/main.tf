@@ -91,45 +91,14 @@ resource "helm_release" "cluster_autoscaler" {
 ################################################################################
 
 ################################################################################
-# VPC CNI DaemonSet Patching for Enhanced Pod Density
+# VPC CNI Configuration Note
 ################################################################################
 
-# Patch the existing aws-node DaemonSet to enable prefix delegation
-resource "null_resource" "vpc_cni_patch" {
-  count = var.enable_vpc_cni_prefix_delegation ? 1 : 0
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      kubectl patch daemonset aws-node -n kube-system --patch '{
-        "spec": {
-          "template": {
-            "spec": {
-              "containers": [
-                {
-                  "name": "aws-node",
-                  "env": [
-                    {"name": "ENABLE_PREFIX_DELEGATION", "value": "true"},
-                    {"name": "WARM_PREFIX_TARGET", "value": "1"},
-                    {"name": "WARM_IP_TARGET", "value": "3"},
-                    {"name": "MINIMUM_IP_TARGET", "value": "2"}
-                  ]
-                }
-              ]
-            }
-          }
-        }
-      }'
-    EOT
-  }
-
-  # Restart the DaemonSet to apply changes
-  provisioner "local-exec" {
-    command = "kubectl rollout restart daemonset/aws-node -n kube-system"
-  }
-
-  # Ensure this runs after VPC CNI addon is installed
-  triggers = {
-    cluster_name = var.cluster_name
-    timestamp    = timestamp()
-  }
-}
+# VPC CNI prefix delegation is configured via the EKS addon in the eks-cluster module
+# The configuration_values in the VPC CNI addon automatically set:
+# - ENABLE_PREFIX_DELEGATION = "true" 
+# - WARM_PREFIX_TARGET = "1"
+# - WARM_IP_TARGET = "3"
+# - ENABLE_POD_ENI = "false"
+#
+# No additional patching is required as the addon handles this configuration.

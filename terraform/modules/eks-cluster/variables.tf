@@ -110,3 +110,13 @@ variable "graviton_ami_type" {
     error_message = "Graviton AMI type must be a valid ARM64 AMI type"
   }
 }
+
+# ================================
+# VPC CNI Configuration
+# ================================
+
+variable "enable_vpc_cni_prefix_delegation" {
+  description = "Enable VPC CNI prefix delegation for higher pod density"
+  type        = bool
+  default     = true
+}

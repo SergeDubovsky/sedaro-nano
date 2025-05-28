@@ -236,12 +236,14 @@ EOF
 ################################################################################
 
 resource "aws_eks_addon" "vpc_cni" {
+  count = var.enable_vpc_cni_prefix_delegation ? 1 : 0
+  
   cluster_name                = module.eks.cluster_name
   addon_name                  = "vpc-cni"
   addon_version               = "v1.19.5-eksbuild.3" # Latest version that supports prefix delegation for EKS 1.32
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
-  service_account_role_arn    = aws_iam_role.vpc_cni_role.arn
+  service_account_role_arn    = aws_iam_role.vpc_cni_role[0].arn
 
   configuration_values = jsonencode({
     enableNetworkPolicy = "false"
@@ -266,6 +268,8 @@ resource "aws_eks_addon" "vpc_cni" {
 
 # IAM Role for VPC CNI with enhanced permissions
 resource "aws_iam_role" "vpc_cni_role" {
+  count = var.enable_vpc_cni_prefix_delegation ? 1 : 0
+  
   name = "${local.name}-vpc-cni-role"
 
   assume_role_policy = jsonencode({
@@ -292,14 +296,18 @@ resource "aws_iam_role" "vpc_cni_role" {
 
 # Attach CNI policy with prefix delegation permissions
 resource "aws_iam_role_policy_attachment" "vpc_cni_policy" {
+  count = var.enable_vpc_cni_prefix_delegation ? 1 : 0
+  
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.vpc_cni_role.name
+  role       = aws_iam_role.vpc_cni_role[0].name
 }
 
 # Additional policy for prefix delegation
 resource "aws_iam_role_policy" "vpc_cni_prefix_delegation" {
+  count = var.enable_vpc_cni_prefix_delegation ? 1 : 0
+  
   name = "${local.name}-vpc-cni-prefix-delegation"
-  role = aws_iam_role.vpc_cni_role.id
+  role = aws_iam_role.vpc_cni_role[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
