@@ -94,7 +94,7 @@ module "eks_cluster" {
   # Access configuration
   github_actions_role_arn = var.github_actions_role_arn
   admin_user_arn          = var.admin_user_arn
-  
+
   # VPC CNI configuration
   enable_vpc_cni_prefix_delegation = var.enable_vpc_cni_prefix_delegation
 }
