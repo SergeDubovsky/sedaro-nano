@@ -120,8 +120,6 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.9.8
 
       - name: Terraform Init - Demo Environment
         working-directory: ./terraform/environments/demo
