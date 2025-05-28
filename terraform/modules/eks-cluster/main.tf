@@ -125,13 +125,11 @@ module "eks" {
       # ================================
       min_size     = var.node_min_size
       max_size     = var.node_max_size
-      desired_size = var.node_desired_size
-
-      # ================================
+      desired_size = var.node_desired_size # ================================
       # Launch Template Configuration
       # ================================
       create_launch_template          = true
-      launch_template_name            = "${local.name}-node-template"
+      launch_template_name            = "${local.name}-main-lt"
       launch_template_description     = "Production-optimized launch template for ${local.name} EKS managed node group"
       launch_template_use_name_prefix = true # Use prefix for uniqueness and avoiding conflicts
 
@@ -141,7 +139,7 @@ module "eks" {
         NodeGroup      = "main"
         Purpose        = "eks-worker-nodes"
         CostCenter     = var.environment
-        LaunchTemplate = "${local.name}-node-template"
+        LaunchTemplate = "${local.name}-main-lt"
       })
 
       # ================================
@@ -222,14 +220,12 @@ EOF
         Monitoring   = var.enable_detailed_monitoring ? "enabled" : "disabled"
         Storage      = "eks-default" # Using EKS default storage (20GB gp2)
       })
-    }
-
-    # ARM64 Graviton node group for cost optimization
+    } # ARM64 Graviton node group for cost optimization
     graviton = {
       # ================================
       # Node Group Basic Configuration
       # ================================
-      name            = "${local.name}-graviton"
+      name            = "${local.name}-arm64"
       use_name_prefix = true
 
       # ================================
@@ -244,13 +240,11 @@ EOF
       # ================================
       min_size     = var.graviton_min_size
       max_size     = var.graviton_max_size
-      desired_size = var.graviton_desired_size
-
-      # ================================
+      desired_size = var.graviton_desired_size # ================================
       # Launch Template Configuration
       # ================================
       create_launch_template          = true
-      launch_template_name            = "${local.name}-graviton-template"
+      launch_template_name            = "${local.name}-arm64-lt"
       launch_template_description     = "ARM64 Graviton launch template for ${local.name} EKS managed node group"
       launch_template_use_name_prefix = true
 
@@ -260,7 +254,7 @@ EOF
         Architecture   = "arm64"
         Purpose        = "eks-worker-nodes-graviton"
         CostCenter     = var.environment
-        LaunchTemplate = "${local.name}-graviton-template"
+        LaunchTemplate = "${local.name}-arm64-lt"
       })
 
       # ================================
@@ -368,7 +362,7 @@ module "aws_load_balancer_controller_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.48"
 
-  role_name = "${local.name}-aws-load-balancer-controller"
+  role_name = "${local.name}-alb-controller"
 
   attach_load_balancer_controller_policy = true
 
