@@ -33,9 +33,11 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
 
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -45,7 +47,7 @@ jobs:
       - name: Set up Node.js (for frontend build optimization)
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: web/package-lock.json
 
@@ -69,7 +71,7 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/sedaro-nano-demo-backend:${{ github.sha }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
 
       - name: Build and push frontend (web) image
         uses: docker/build-push-action@v6
@@ -83,7 +85,7 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/sedaro-nano-demo-frontend:${{ github.sha }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
 
       - name: Move cache
         run: |

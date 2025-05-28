@@ -18,7 +18,7 @@ resource "helm_release" "aws_load_balancer_controller" {
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
-  version    = "1.13.2"
+  version    = "1.14.2"
 
   set {
     name  = "clusterName"
@@ -53,7 +53,7 @@ resource "helm_release" "metrics_server" {
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
   chart      = "metrics-server"
   namespace  = "kube-system"
-  version    = "3.12.0"
+  version    = "3.12.2"
 
   set {
     name  = "args"
@@ -69,7 +69,7 @@ resource "helm_release" "cluster_autoscaler" {
   repository = "https://kubernetes.github.io/autoscaler"
   chart      = "cluster-autoscaler"
   namespace  = "kube-system"
-  version    = "9.29.0"
+  version    = "9.43.0"
 
   set {
     name  = "cloudProvider"

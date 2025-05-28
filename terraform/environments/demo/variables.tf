@@ -103,3 +103,49 @@ variable "node_update_max_unavailable_percentage" {
   type        = number
   default     = 25
 }
+
+# ================================
+# Graviton (ARM64) Node Configuration
+# ================================
+
+variable "graviton_instance_types" {
+  description = "EC2 instance types for Graviton (ARM64) EKS nodes"
+  type        = list(string)
+  default     = ["m6g.medium", "m6g.large"] # Graviton3 instances for cost efficiency
+}
+
+variable "graviton_desired_size" {
+  description = "Desired number of Graviton nodes"
+  type        = number
+  default     = 1 # Start with 1 for testing
+}
+
+variable "graviton_max_size" {
+  description = "Maximum number of Graviton nodes"
+  type        = number
+  default     = 3
+}
+
+variable "graviton_min_size" {
+  description = "Minimum number of Graviton nodes"
+  type        = number
+  default     = 0 # Can scale to zero when not needed
+}
+
+variable "graviton_capacity_type" {
+  description = "Type of capacity for Graviton nodes"
+  type        = string
+  default     = "SPOT" # Use SPOT for maximum cost savings
+}
+
+variable "graviton_ami_type" {
+  description = "AMI type for Graviton nodes"
+  type        = string
+  default     = "AL2023_ARM_64_STANDARD"
+}
+
+variable "graviton_taint_arm_workloads" {
+  description = "Whether to taint Graviton nodes for ARM64-only workloads"
+  type        = bool
+  default     = false # Allow mixed scheduling for demo
+}

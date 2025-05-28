@@ -140,3 +140,63 @@ variable "node_update_max_unavailable_percentage" {
     error_message = "Max unavailable percentage must be between 1 and 100"
   }
 }
+
+# ================================
+# Graviton (ARM64) Node Group Variables
+# ================================
+
+variable "graviton_instance_types" {
+  description = "EC2 instance types for Graviton (ARM64) EKS nodes"
+  type        = list(string)
+  default     = ["m6g.medium"] # Cost-optimized Graviton instances
+}
+
+variable "graviton_desired_size" {
+  description = "Desired number of Graviton nodes"
+  type        = number
+  default     = 1
+}
+
+variable "graviton_max_size" {
+  description = "Maximum number of Graviton nodes"
+  type        = number
+  default     = 3
+}
+
+variable "graviton_min_size" {
+  description = "Minimum number of Graviton nodes"
+  type        = number
+  default     = 0 # Can scale to zero for cost savings
+}
+
+variable "graviton_capacity_type" {
+  description = "Type of capacity for Graviton nodes. Valid values: ON_DEMAND, SPOT"
+  type        = string
+  default     = "SPOT" # Default to SPOT for maximum cost savings
+
+  validation {
+    condition     = contains(["ON_DEMAND", "SPOT"], var.graviton_capacity_type)
+    error_message = "Graviton capacity type must be either ON_DEMAND or SPOT"
+  }
+}
+
+variable "graviton_ami_type" {
+  description = "Type of Amazon Machine Image (AMI) for Graviton nodes"
+  type        = string
+  default     = "AL2023_ARM_64_STANDARD"
+
+  validation {
+    condition = contains([
+      "AL2023_ARM_64_STANDARD",
+      "BOTTLEROCKET_ARM_64",
+      "BOTTLEROCKET_ARM_64_NVIDIA"
+    ], var.graviton_ami_type)
+    error_message = "Graviton AMI type must be a valid ARM64 AMI type"
+  }
+}
+
+variable "graviton_taint_arm_workloads" {
+  description = "Whether to add taints to Graviton nodes to ensure only ARM64-compatible workloads run on them"
+  type        = bool
+  default     = false # Allow mixed workloads by default
+}

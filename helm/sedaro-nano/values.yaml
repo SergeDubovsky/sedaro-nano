@@ -103,3 +103,54 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Multi-architecture deployment configuration
+multiArch:
+  # Enable multi-architecture support
+  enabled: true
+  
+  # Node affinity settings for different architectures
+  nodeAffinity:
+    # Prefer ARM64 nodes for cost optimization (Graviton instances)
+    preferArm64: true
+    
+    # Allow fallback to AMD64 if ARM64 nodes are not available
+    allowFallback: true
+    
+    # Specific node selector for ARM64 workloads (optional)
+    arm64NodeSelector: {}
+    #   sedaro.io/architecture: arm64
+    
+    # Specific node selector for AMD64 workloads (optional)  
+    amd64NodeSelector: {}
+    #   sedaro.io/architecture: amd64
+
+# Backend configuration
+backend:
+  # Node affinity and tolerations
+  nodeAffinity: {}
+  tolerations: []
+  
+  # Resource configuration optimized for both architectures
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Frontend configuration  
+frontend:
+  # Node affinity and tolerations
+  nodeAffinity: {}
+  tolerations: []
+  
+  # Resource configuration
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi

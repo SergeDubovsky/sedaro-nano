@@ -6,7 +6,7 @@ on:
     types:
       - completed
     branches: [ main ]
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:
     inputs:
       chart_version:
         description: 'Specific chart version to deploy (e.g., 0.1.0-55). Leave empty to use latest.'
@@ -14,14 +14,14 @@ on:
         type: string
 
 permissions:
-  id-token: write   # Required for OIDC
-  contents: read    # Required to checkout code
+  id-token: write
+  contents: read
 
 jobs:
   deploy-workloads:
     name: Deploy Kubernetes Workloads
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     
     steps:
       - name: Checkout repository
@@ -31,11 +31,11 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+          aws-region: us-east-1
 
       - name: Install kubectl
         run: |
-          curl -LO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
+          curl -LO "https://dl.k8s.io/release/v1.31.1/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/kubectl
 
@@ -47,7 +47,7 @@ jobs:
 
       - name: Configure kubectl for EKS
         run: |
-          aws eks update-kubeconfig --name sedaro-nano-demo --region ${{ vars.AWS_REGION || 'us-east-1' }}
+          aws eks update-kubeconfig --name sedaro-nano-demo --region us-east-1
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -58,67 +58,42 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Use the chart version that was pushed by the CI workflow
           CHART_BASE_VERSION=$(helm show chart ./helm/sedaro-nano | grep '^version:' | awk '{print $2}')
           
-          # Determine chart version based on trigger type
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            # For workflow_run triggers, use the triggering workflow's run number
             TRIGGERING_RUN_NUMBER="${{ github.event.workflow_run.run_number }}"
             CHART_VERSION="${CHART_BASE_VERSION}-${TRIGGERING_RUN_NUMBER}"
-            echo "Using triggering CI workflow run number: ${TRIGGERING_RUN_NUMBER}"
           elif [ -n "${{ inputs.chart_version }}" ]; then
-            # For manual dispatch with specific version input
             CHART_VERSION="${{ inputs.chart_version }}"
-            echo "Using specified chart version: ${CHART_VERSION}"
           else
-            # For manual dispatch without version input, find the latest chart version
-            echo "Finding latest chart version in ECR..."
-            
-            # List all tags for the sedaro-nano chart and find the latest one with our base version
             LATEST_TAG=$(aws ecr describe-images \
-              --repository-name helm-charts \
+              --repository-name helm-charts/sedaro-nano \
               --region us-east-1 \
               --query "imageDetails[?starts_with(imageTags[0], '${CHART_BASE_VERSION}-')].imageTags[0]" \
               --output text | sort -V | tail -1)
             
             if [ -n "$LATEST_TAG" ] && [ "$LATEST_TAG" != "None" ]; then
               CHART_VERSION="$LATEST_TAG"
-              echo "Found latest chart version: ${CHART_VERSION}"
             else
-              echo "No existing chart versions found. Using current run number as fallback."
               CHART_VERSION="${CHART_BASE_VERSION}-${GITHUB_RUN_NUMBER}"
             fi
           fi
           
-          echo "Deploying Helm chart: oci://${ECR_REGISTRY}/helm-charts/sedaro-nano:${CHART_VERSION}"
-          echo "Using Docker image tag: ${IMAGE_TAG}"
-
+          echo "Deploying chart version: ${CHART_VERSION}"
+          
           helm upgrade --install sedaro-nano oci://${ECR_REGISTRY}/helm-charts/sedaro-nano \
             --version ${CHART_VERSION} \
-            --namespace default \
+            --namespace sedaro-nano \
+            --create-namespace \
             --set image.backendRepository="${ECR_REGISTRY}/sedaro-nano-demo-backend" \
             --set image.frontendRepository="${ECR_REGISTRY}/sedaro-nano-demo-frontend" \
             --set image.tag="${IMAGE_TAG}" \
-            --wait --timeout 5m0s
+            --wait --timeout 10m
 
       - name: Verify deployment status
         run: |
-          echo "Verifying deployment status..."
-          kubectl rollout status deployment/sedaro-nano-backend --timeout=60s
-          kubectl rollout status deployment/sedaro-nano-frontend --timeout=60s
-          kubectl get pods -l app.kubernetes.io/instance=sedaro-nano
-          kubectl get services -l app.kubernetes.io/instance=sedaro-nano
-          kubectl get ingress -l app.kubernetes.io/instance=sedaro-nano
-          
-      - name: Show deployment information
-        run: |
-          echo "Deployment completed successfully!"
-          echo "Services:"
-          kubectl get services -l app.kubernetes.io/instance=sedaro-nano
-          echo "Pods:"
-          kubectl get pods -l app.kubernetes.io/instance=sedaro-nano
-          echo "Ingress:"
-          kubectl get ingress -l app.kubernetes.io/instance=sedaro-nano
-          echo "ALB Address (may take a few minutes to provision):"
-          kubectl get ingress sedaro-nano -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+          kubectl rollout status deployment/sedaro-nano-backend --timeout=300s -n sedaro-nano
+          kubectl rollout status deployment/sedaro-nano-frontend --timeout=300s -n sedaro-nano
+          kubectl get pods -n sedaro-nano
+          kubectl get services -n sedaro-nano
+          kubectl get ingress -n sedaro-nano

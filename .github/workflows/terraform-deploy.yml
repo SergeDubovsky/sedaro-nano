@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 env:
-  TF_VERSION: "1.12.1"
+  TF_VERSION: "1.9.8"
 
 jobs:
   terraform:
@@ -37,8 +37,7 @@ jobs:
         id: changes
         run: |
           if git diff --name-only HEAD~1 | grep -E '\.(tf|tfvars)$' > /dev/null; then
-            echo "terraform=true" >> $GITHUB_OUTPUT
-          else
+            echo "terraform=true" >> $GITHUB_OUTPUT        else
             echo "terraform=false" >> $GITHUB_OUTPUT
           fi
 

@@ -1,18 +1,17 @@
 terraform {
   required_version = ">= 1.0"
-
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 5.82"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "~> 2.0"
+      version = "~> 2.17"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.0"
+      version = "~> 2.35"
     }
   }
   # Remote state configuration
@@ -63,15 +62,23 @@ provider "kubernetes" {
 module "eks_cluster" {
   source = "../../modules/eks-cluster"
 
-  project_name = var.project_name
-  environment  = var.environment
-  aws_region   = var.aws_region
-  vpc_cidr     = var.vpc_cidr
-  # Node configuration
+  project_name        = var.project_name
+  environment         = var.environment
+  aws_region          = var.aws_region
+  vpc_cidr            = var.vpc_cidr # Node configuration
   node_instance_types = var.node_instance_types
   node_desired_size   = var.node_desired_size
   node_max_size       = var.node_max_size
   node_min_size       = var.node_min_size
+
+  # Graviton (ARM64) node configuration
+  graviton_instance_types      = var.graviton_instance_types
+  graviton_desired_size        = var.graviton_desired_size
+  graviton_max_size            = var.graviton_max_size
+  graviton_min_size            = var.graviton_min_size
+  graviton_capacity_type       = var.graviton_capacity_type
+  graviton_ami_type            = var.graviton_ami_type
+  graviton_taint_arm_workloads = var.graviton_taint_arm_workloads
 
   # Launch template configuration (minimal for demo)
   enable_detailed_monitoring             = var.enable_detailed_monitoring

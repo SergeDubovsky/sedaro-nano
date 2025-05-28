@@ -1,5 +1,5 @@
 # Build stage for Rust binary
-FROM rust:1.84-slim AS rust-builder
+FROM rust:1.84.0-slim AS rust-builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
