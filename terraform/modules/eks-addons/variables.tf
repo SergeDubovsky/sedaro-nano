@@ -34,3 +34,9 @@ variable "enable_cluster_autoscaler" {
   type        = bool
   default     = false
 }
+
+variable "enable_vpc_cni_prefix_delegation" {
+  description = "Enable VPC CNI prefix delegation for higher pod density"
+  type        = bool
+  default     = true
+}

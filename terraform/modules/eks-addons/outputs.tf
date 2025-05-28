@@ -12,3 +12,8 @@ output "cluster_autoscaler_enabled" {
   description = "Whether cluster autoscaler is enabled"
   value       = var.enable_cluster_autoscaler
 }
+
+output "vpc_cni_prefix_delegation_enabled" {
+  description = "Whether VPC CNI prefix delegation is enabled"
+  value       = var.enable_vpc_cni_prefix_delegation
+}

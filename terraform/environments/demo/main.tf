@@ -39,7 +39,7 @@ provider "aws" {
 # US-East-1 provider for ACM certificates (required for ALB)
 provider "aws" {
   alias  = "us_east_1"
-  region = "us-east-1"
+  region = var.cert_region
 
   default_tags {
     tags = {
@@ -110,8 +110,9 @@ module "eks_addons" {
   aws_load_balancer_controller_role_arn = module.eks_cluster.aws_load_balancer_controller_role_arn
 
   # Addon configuration
-  enable_metrics_server     = var.enable_metrics_server
-  enable_cluster_autoscaler = var.enable_cluster_autoscaler
+  enable_metrics_server               = var.enable_metrics_server
+  enable_cluster_autoscaler           = var.enable_cluster_autoscaler
+  enable_vpc_cni_prefix_delegation    = var.enable_vpc_cni_prefix_delegation
 }
 
 # ECR Repositories for Container Images

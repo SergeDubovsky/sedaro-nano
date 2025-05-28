@@ -80,9 +80,61 @@ resource "helm_release" "cluster_autoscaler" {
     name  = "awsRegion"
     value = var.aws_region
   }
-
   set {
     name  = "autoDiscovery.clusterName"
     value = var.cluster_name
   }
+}
+
+################################################################################
+# VPC CNI Environment Variables for Enhanced Pod Density
+################################################################################
+
+# Configure VPC CNI for higher pod density using ConfigMap
+resource "kubernetes_config_map" "vpc_cni_config" {
+  count = var.enable_vpc_cni_prefix_delegation ? 1 : 0
+
+  metadata {
+    name      = "amazon-vpc-cni"
+    namespace = "kube-system"
+  }
+
+  data = {
+    # Enable prefix delegation for higher pod density
+    enable_prefix_delegation = "true"
+    # Warm prefix target - number of prefixes to keep available
+    warm_prefix_target = "1"
+    # Warm IP target per ENI
+    warm_ip_target = "3"
+    # Enable pod ENI for better performance (optional)
+    enable_pod_eni = "false"
+  }
+}
+
+# Patch the aws-node DaemonSet to use prefix delegation
+resource "null_resource" "vpc_cni_patch" {
+  count = var.enable_vpc_cni_prefix_delegation ? 1 : 0
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      kubectl patch daemonset aws-node -n kube-system -p '{
+        "spec": {
+          "template": {
+            "spec": {
+              "containers": [{
+                "name": "aws-node",
+                "env": [
+                  {"name": "ENABLE_PREFIX_DELEGATION", "value": "true"},
+                  {"name": "WARM_PREFIX_TARGET", "value": "1"},
+                  {"name": "WARM_IP_TARGET", "value": "3"}
+                ]
+              }]
+            }
+          }
+        }
+      }'
+    EOT
+  }
+
+  depends_on = [kubernetes_config_map.vpc_cni_config]
 }

@@ -17,6 +17,12 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "cert_region" {
+  type        = string
+  description = "AWS region for ACM certificates (must be us-east-1 for ALB)"
+  default     = "us-east-1"
+}
+
 # VPC Configuration
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
@@ -49,6 +55,12 @@ variable "enable_cluster_autoscaler" {
   default     = false
 }
 
+variable "enable_vpc_cni_prefix_delegation" {
+  description = "Enable VPC CNI prefix delegation for higher pod density"
+  type        = bool
+  default     = true
+}
+
 # ================================
 # Launch Template Configuration (Graviton-only)
 # ================================
@@ -72,7 +84,7 @@ variable "node_update_max_unavailable_percentage" {
 variable "graviton_instance_types" {
   description = "EC2 instance types for Graviton (ARM64) EKS nodes - primary and only node group"
   type        = list(string)
-  default     = ["m6g.medium", "m6g.large"] # Graviton3 instances for cost efficiency
+  default     = ["m6g.large", "m6g.xlarge"] # Larger Graviton3 instances for higher pod density
 }
 
 variable "graviton_desired_size" {

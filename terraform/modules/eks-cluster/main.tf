@@ -232,6 +232,103 @@ EOF
 }
 
 ################################################################################
+# VPC CNI Configuration for Enhanced Pod Density
+################################################################################
+
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name             = module.eks.cluster_name
+  addon_name               = "vpc-cni"
+  addon_version            = "v1.19.0-eksbuild.1" # Latest version that supports prefix delegation
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+  service_account_role_arn = aws_iam_role.vpc_cni_role.arn
+
+  configuration_values = jsonencode({
+    enableNetworkPolicy = "false"
+    env = {
+      # Enable IP prefix delegation for higher pod density
+      ENABLE_PREFIX_DELEGATION = "true"
+      # Warm prefix target - number of prefixes to keep available
+      WARM_PREFIX_TARGET = "1"
+      # Warm IP target per ENI
+      WARM_IP_TARGET = "3"
+      # Enable pod ENI for better performance (optional)
+      ENABLE_POD_ENI = "false"
+    }
+  })
+
+  depends_on = [
+    module.eks.eks_managed_node_groups
+  ]
+
+  tags = local.tags
+}
+
+# IAM Role for VPC CNI with enhanced permissions
+resource "aws_iam_role" "vpc_cni_role" {
+  name = "${local.name}-vpc-cni-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Effect = "Allow"
+        Condition = {
+          StringEquals = {
+            "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-node"
+            "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:aud" = "sts.amazonaws.com"
+          }
+        }
+        Principal = {
+          Federated = module.eks.oidc_provider_arn
+        }
+      }
+    ]
+  })
+
+  tags = local.tags
+}
+
+# Attach CNI policy with prefix delegation permissions
+resource "aws_iam_role_policy_attachment" "vpc_cni_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.vpc_cni_role.name
+}
+
+# Additional policy for prefix delegation
+resource "aws_iam_role_policy" "vpc_cni_prefix_delegation" {
+  name = "${local.name}-vpc-cni-prefix-delegation"
+  role = aws_iam_role.vpc_cni_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:AttachNetworkInterface",
+          "ec2:DeleteNetworkInterface",
+          "ec2:DetachNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DescribeInstances",
+          "ec2:ModifyNetworkInterfaceAttribute",
+          "ec2:AssignPrivateIpAddresses",
+          "ec2:UnassignPrivateIpAddresses",
+          # Prefix delegation specific permissions
+          "ec2:AssignIpv6Addresses",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVpcs",
+          "ec2:DescribeNetworkInterfaceAttribute"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+################################################################################
 # AWS Load Balancer Controller IRSA Role
 # Note: The actual Helm deployment is in terraform-addons/
 ################################################################################

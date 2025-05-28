@@ -23,6 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      CERT_REGION: ${{ vars.CERT_REGION || 'us-east-1' }}
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,7 +35,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Install kubectl
         run: |
@@ -47,7 +51,7 @@ jobs:
 
       - name: Configure kubectl for EKS
         run: |
-          aws eks update-kubeconfig --name sedaro-nano-demo --region us-east-1
+          aws eks update-kubeconfig --name sedaro-nano-demo --region ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -70,7 +74,7 @@ jobs:
           else
             LATEST_TAG=$(aws ecr describe-images \
               --repository-name helm-charts/sedaro-nano \
-              --region us-east-1 \
+              --region ${{ env.AWS_REGION }} \
               --query "imageDetails[?starts_with(imageTags[0], '${CHART_BASE_VERSION}-')].imageTags[0]" \
               --output text | sort -V | tail -1)
             
@@ -107,7 +111,7 @@ jobs:
             
             # Try to find existing ACM certificate for the domain
             CERT_ARN=$(aws acm list-certificates \
-              --region us-east-1 \
+              --region ${{ env.CERT_REGION }} \
               --query "CertificateSummaryList[?DomainName=='${FULL_DOMAIN}' || contains(SubjectAlternativeNameSummary, '${FULL_DOMAIN}') || DomainName=='*.${DOMAIN}'].CertificateArn" \
               --output text | head -1)
             
