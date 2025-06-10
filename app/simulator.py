@@ -3,15 +3,34 @@
 from functools import reduce
 from operator import __or__
 import subprocess
+import os
 import json
 import logging
 
 from modsim import agents
 from store import QRangeStore
 
+# Compute the path to the query parser binary relative to this file so that it
+# works regardless of the current working directory.
+QUERIES_BIN = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "queries",
+    "target",
+    "release",
+    "sedaro-nano-queries",
+)
+
 def parse_query(query):
+    """Parse a query string using the Rust parser binary."""
     # NOTE: The query parser is invoked via a subprocess call to the Rust binary
-    popen = subprocess.Popen('../queries/target/release/sedaro-nano-queries', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    popen = subprocess.Popen(
+        QUERIES_BIN,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
     (stdout, stderr) = popen.communicate(query)
     if popen.returncode:
         raise Exception(f"Parsing query failed: {stderr}")
